@@ -238,26 +238,16 @@ class InferenceService(object):
         """
         轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
         """
-        return JSONResponse(
-            content={
-                "status": "OK",
-                "message": {
-                    "QuantumWeave": {
-                        "name": self.kf.model.name,
-                        "input_shape": self.kf.model.input_shape,
-                        "output_shape": self.kf.model.output_shape,
-                        "layers": self.kf.model.layers,
-                    },
-                    "AquilaSequence-X": {
-                        "name": self.kc.model.name,
-                        "input_shape": self.kc.model.input_shape,
-                        "output_shape": self.kc.model.output_shape,
-                        "layers": self.kc.model.layers,
-                    },
-                },
-                "timestamp": int(time.time()),
-            }, status_code=200
-        )
+        content = {
+            "status": "OK",
+            "message": {
+                "QuantumWeave": json.loads(self.kf.model.to_json()),
+                "AquilaSequence-X": json.loads(self.kc.model.to_json()),
+            },
+            "timestamp": int(time.time()),
+        }
+        logger.info(content)
+        return JSONResponse(content=content, status_code=200)
 
 
 if __name__ == "__main__":
