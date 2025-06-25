@@ -407,6 +407,7 @@ class BaseClassifier(object):
         step = step or 1
         boost_mode = boost_mode or True
 
+        logger.info(f"==== classify final ====")
         try:
             assert bool(boost_mode) == bool(valid_range), "boost_mode requires valid_range"
 
@@ -417,7 +418,7 @@ class BaseClassifier(object):
             while frame is not None:
                 frame = self._apply_hook(frame, *args, **kwargs)
                 if valid_range and not any(
-                    [each.contain(frame.frame_id) for each in valid_range]
+                        [each.contain(frame.frame_id) for each in valid_range]
                 ):
                     logger.debug(
                         f"frame {frame.frame_id} ({frame.timestamp}) not in target range, skip"
@@ -446,6 +447,8 @@ class BaseClassifier(object):
                 yield f"{stream}\n\n"
 
                 frame = operator.get_frame_by_id(frame.frame_id + step)
+
+            logger.info(f"==== classify final ====")
 
         except AssertionError as e:
             logger.error(e)

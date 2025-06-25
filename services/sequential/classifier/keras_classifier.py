@@ -191,11 +191,7 @@ class KerasStruct(BaseModelClassifier):
         return frame_tag
 
     def _classify_frame(self, frame: "VideoFrame", *_, **__) -> str:
-        try:
-            return self.predict_with_object(frame.data)
-        except Exception as e:
-            logger.error(f"Predict error: {e}")
-            raise
+        return self.predict_with_object(frame.data)
 
 
 if __name__ == '__main__':

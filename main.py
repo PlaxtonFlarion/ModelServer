@@ -206,10 +206,9 @@ class InferenceService(object):
 
         frame_shape: tuple[int, ...] = video.frame_detail()[-1]
         logger.info(f"Frame shape: {frame_shape}")
-        # blend_model = self.kf if len(frame_shape) == 2 else (
-        #     self.kf if frame_shape[0] == 1 else self.kc
-        # )
-        blend_model = self.kc
+        blend_model = self.kf if len(frame_shape) == 2 else (
+            self.kf if frame_shape[0] == 1 else self.kc
+        )
 
         logger.info(f"Classifier: {blend_model.__class__.__name__}")
         yield from blend_model.classify(
@@ -238,14 +237,25 @@ class InferenceService(object):
         """
         轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
         """
+        faint_model_dict = {
+            "status": "Online",
+            "detail": json.loads(self.kf.model.to_json()).get("class_name", "Model")
+        } if self.kf.model else {"status": "Offline"}
+
+        color_model_dict = {
+            "status": "Online",
+            "detail": json.loads(self.kc.model.to_json()).get("class_name", "Model")
+        } if self.kc.model else {"status": "Offline"}
+
         content = {
             "status": "OK",
             "message": {
-                "QuantumWeave": json.loads(self.kf.model.to_json()),
-                "AquilaSequence-X": json.loads(self.kc.model.to_json()),
+                "QuantumWeave": {**faint_model_dict},
+                "AquilaSequence-X": {**color_model_dict}
             },
             "timestamp": int(time.time()),
         }
+
         logger.info(content)
         return JSONResponse(content=content, status_code=200)
 
