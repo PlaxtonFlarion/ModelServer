@@ -407,7 +407,7 @@ class BaseClassifier(object):
         step = step or 1
         boost_mode = boost_mode or True
 
-        logger.info(f"==== classify final ====")
+        logger.info(f"==== Classify Begin ====")
         try:
             assert bool(boost_mode) == bool(valid_range), "boost_mode requires valid_range"
 
@@ -448,7 +448,7 @@ class BaseClassifier(object):
 
                 frame = operator.get_frame_by_id(frame.frame_id + step)
 
-            logger.info(f"==== classify final ====")
+            logger.info(f"==== Classify Final ====")
 
         except AssertionError as e:
             logger.error(e)
