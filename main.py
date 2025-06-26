@@ -9,7 +9,7 @@ import base64
 import typing
 import hashlib
 from fastapi import (
-    FastAPI, UploadFile, Request
+    UploadFile, Request
 )
 from fastapi.responses import (
     JSONResponse, StreamingResponse
@@ -24,7 +24,6 @@ from services.sequential.video import VideoFrame, VideoObject
 from common import craft
 
 app = modal.App("inference")
-web_app = FastAPI()
 craft.init_logger()
 
 # 构建镜像 & 模型挂载目录
@@ -33,7 +32,9 @@ image = modal.Image.debian_slim(
 ).pip_install_from_requirements(
     "requirements.txt"
 ).apt_install("libgl1", "libglib2.0-0", "ffmpeg",).add_local_dir(
-    local_path=".", remote_path="/root"
+    local_path=".",
+    remote_path="/root",
+    ignore=["**/.venv", "**/.venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -96,7 +97,8 @@ class FrameMeta(BaseModel):
 
 @app.cls(
     image=image,
-    memory=16384,
+    # Workflow 8G/16G 8192/16384
+    memory=8192,
     max_containers=5,
     scaledown_window=600,
     secrets=[secret]
