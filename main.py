@@ -31,10 +31,12 @@ image = modal.Image.debian_slim(
     python_version="3.11"
 ).pip_install_from_requirements(
     "requirements.txt"
-).apt_install("libgl1", "libglib2.0-0", "ffmpeg",).add_local_dir(
+).apt_install(
+    "libgl1", "libglib2.0-0", "ffmpeg"
+).add_local_dir(
     local_path=".",
     remote_path="/root",
-    ignore=["**/.venv", "**/.venv"]
+    ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
