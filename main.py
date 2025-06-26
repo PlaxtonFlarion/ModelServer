@@ -152,15 +152,15 @@ class InferenceService(object):
 
     @modal.enter()
     def startup(self):
-        logger.info("Faint model loading ...")
+        logger.info("KF model loading ...")
         self.kf = KerasStruct()
         self.kf.load_model("/root/models/Keras_Gray_W256_H256")
-        logger.info("✅ Faint model loaded")
+        logger.info("✅ KF model loaded")
 
-        logger.info("Color model loading ...")
+        logger.info("KC model loading ...")
         self.kc = KerasStruct()
         self.kc.load_model("/root/models/Keras_Hued_W256_H256")
-        logger.info("✅ Color model loaded")
+        logger.info("✅ KC model loaded")
 
         self.shared_secret = os.environ["SHARED_SECRET"]
 
@@ -240,14 +240,18 @@ class InferenceService(object):
         轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
         """
         faint_model_dict = {
-            "status": "Online",
-            "detail": json.loads(self.kf.model.to_json()).get("class_name", "Model")
-        } if self.kf.model else {"status": "Offline"}
+            "fettle": "Online",
+            "dazzle": {
+                k: v for k, v in json.loads(self.kf.model.to_json()).items() if k != "config"
+            }
+        } if self.kf.model else {"fettle": "Offline"}
 
         color_model_dict = {
-            "status": "Online",
-            "detail": json.loads(self.kc.model.to_json()).get("class_name", "Model")
-        } if self.kc.model else {"status": "Offline"}
+            "fettle": "Online",
+            "dazzle": {
+                k: v for k, v in json.loads(self.kc.model.to_json()).items() if k != "config"
+            }
+        } if self.kc.model else {"fettle": "Offline"}
 
         content = {
             "status": "OK",
