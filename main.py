@@ -187,6 +187,7 @@ class InferenceService(object):
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
+        logger.info(f"======== Stream Begin ========")
         meta = FrameMeta(**meta_dict)
         npz_data = numpy.load(io.BytesIO(file_bytes), allow_pickle=False)
 
@@ -247,6 +248,7 @@ class InferenceService(object):
         yield from final.classify(
             video, cut_ranges, meta.step, keep_data, meta.boost_mode
         )
+        logger.info(f"======== Stream Final ========")
 
     @modal.fastapi_endpoint(method="POST")
     @with_exception_handling
