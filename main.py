@@ -97,6 +97,7 @@ class FrameMeta(BaseModel):
     video_name: str
     video_path: str
     frame_count: int
+    frame_shape: tuple[int, ...]
     frames_data: list
     valid_range: list
     step: typing.Optional[int] = None
@@ -159,6 +160,17 @@ class InferenceService(object):
                 content={"error": "Unauthorized", "message": str(e)}, status_code=401
             )
 
+    @staticmethod
+    def judge_channel(shape: tuple[int, ...]) -> int:
+        if len(shape) == 2:
+            return 1
+        elif len(shape) == 3:
+            if shape[2] in [1, 3, 4]:
+                return shape[2]
+            elif shape[0] in [1, 3, 4]:
+                return shape[0]
+        raise ValueError(f"未知帧格式 shape={shape}")
+
     @modal.enter()
     def startup(self):
         logger.info("KF model loading ...")
@@ -181,6 +193,7 @@ class InferenceService(object):
         logger.info(f"video name: {meta.video_name}")
         logger.info(f"video path: {meta.video_path}")
         logger.info(f"frame count: {meta.frame_count}")
+        logger.info(f"frame shape: {meta.frame_shape}")
         logger.info(f"frames data: {len(meta.frames_data)}")
         logger.info(f"valid range: {len(meta.valid_range)}")
         for cut_range in meta.valid_range:
@@ -215,14 +228,23 @@ class InferenceService(object):
             for cr in meta.valid_range
         ]
 
-        frame_shape = video.frame_detail()[-1]
-        logger.info(f"Frame shape: {frame_shape}")
-        blend_model = self.kf if len(frame_shape) == 2 else (
-            self.kf if frame_shape[0] == 1 else self.kc
-        )
+        frame_channel = self.judge_channel(
+            meta.frame_shape
+        ) or self.judge_channel(video.frame_detail()[-1])
+        logger.info(f"Frame channel: {frame_channel}")
 
-        logger.info(f"Classifier: {blend_model.__class__.__name__}")
-        yield from blend_model.classify(
+        final = self.kc if frame_channel != 1 else self.kf
+        model_channel = final.model.input_shape[-1]
+        logger.info(f"Model channel: {model_channel}")
+
+        mismatched: typing.Any = lambda: frame_channel == model_channel  # todo
+        if mismatched():
+            stream = {"error": (message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel}")}
+            yield f"FATAL: {json.dumps(stream)}\n\n"
+            return logger.error(message)
+
+        logger.info(f"Classifier: {final.__class__.__name__}")
+        yield from final.classify(
             video, cut_ranges, meta.step, keep_data, meta.boost_mode
         )
 
