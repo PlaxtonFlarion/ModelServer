@@ -187,7 +187,7 @@ class InferenceService(object):
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
-        logger.info(f"======== Stream Begin ========")
+        logger.info(f"========== Stream Begin ==========")
         meta = FrameMeta(**meta_dict)
         npz_data = numpy.load(io.BytesIO(file_bytes), allow_pickle=False)
 
@@ -240,7 +240,7 @@ class InferenceService(object):
 
         mismatched: typing.Any = lambda: frame_channel == model_channel  # todo
         if mismatched():
-            stream = {"error": (message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel}")}
+            stream = {"fatal": (message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel}")}
             yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
             return logger.error(message)
 
@@ -248,7 +248,7 @@ class InferenceService(object):
         yield from final.classify(
             video, cut_ranges, meta.step, keep_data, meta.boost_mode
         )
-        logger.info(f"======== Stream Final ========")
+        logger.info(f"========== Stream Final ==========")
 
     @modal.fastapi_endpoint(method="POST")
     @with_exception_handling
