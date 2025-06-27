@@ -1,3 +1,10 @@
+#   __  __       _
+#  |  \/  | __ _(_)_ __
+#  | |\/| |/ _` | | '_ \
+#  | |  | | (_| | | | | |
+#  |_|  |_|\__,_|_|_| |_|
+#
+
 import os
 import io
 import json
@@ -101,8 +108,8 @@ class FrameMeta(BaseModel):
     image=image,
     # Workflow 8G/16G 8192/16384
     memory=8192,
-    max_containers=5,
-    scaledown_window=600,
+    max_containers=2,
+    scaledown_window=300,
     secrets=[secret]
 )
 class InferenceService(object):
@@ -208,7 +215,7 @@ class InferenceService(object):
             for cr in meta.valid_range
         ]
 
-        frame_shape: tuple[int, ...] = video.frame_detail()[-1]
+        frame_shape = video.frame_detail()[-1]
         logger.info(f"Frame shape: {frame_shape}")
         blend_model = self.kf if len(frame_shape) == 2 else (
             self.kf if frame_shape[0] == 1 else self.kc

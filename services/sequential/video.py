@@ -90,14 +90,16 @@ class VideoObject(object):
     def clean_frames(self) -> None:
         self.frames_data = tuple()
 
-    def frame_detail(self) -> tuple:
+    def frame_detail(self) -> tuple[str, tuple[int, ...]]:
         frame = self.frames_data[0]
 
         every_cost = frame.data.nbytes / (1024 ** 2)
         total_cost = every_cost * len(self.frames_data)
         frame_size = frame.data.shape[::-1]
+        frame_name = frame.__class__.__name__
+        frame_info = f"[{every_cost:.2f} MB] [{total_cost:.2f} MB]"
 
-        return every_cost, total_cost, frame_size
+        return f"{frame_name} {frame_info} {frame_size}", frame_size
 
     def _read_from_doc(self) -> typing.Generator["VideoFrame", None, None]:
         pass
