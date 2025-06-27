@@ -241,7 +241,7 @@ class InferenceService(object):
         mismatched: typing.Any = lambda: frame_channel == model_channel  # todo
         if mismatched():
             stream = {"error": (message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel}")}
-            yield f"FATAL: {json.dumps(stream)}\n\n"
+            yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
             return logger.error(message)
 
         logger.info(f"Classifier: {final.__class__.__name__}")

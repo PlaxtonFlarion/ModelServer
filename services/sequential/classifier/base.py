@@ -442,7 +442,7 @@ class BaseClassifier(object):
                     "frame_data": frame.data if keep_data else None,
                 }
 
-                stream = f"SingleClassifierResult: {json.dumps(single)}"
+                stream = f"SingleClassifierResult: {json.dumps(single, ensure_ascii=False)}"
                 logger.info(f"单帧分类结果: {stream}")
                 yield f"{stream}\n\n"
 
@@ -452,11 +452,11 @@ class BaseClassifier(object):
 
         except AssertionError as e:
             logger.error(e)
-            yield f"ERROR: {json.dumps({'error': str(e)})}\n\n"
+            yield f"ERROR: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
 
         except Exception as e:
             logger.error(e)
-            yield f"FATAL: {json.dumps({'fatal': str(e)})}\n\n"
+            yield f"FATAL: {json.dumps({'fatal': str(e)}, ensure_ascii=False)}\n\n"
 
 
 class BaseModelClassifier(BaseClassifier):
