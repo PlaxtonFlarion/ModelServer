@@ -443,21 +443,22 @@ class BaseClassifier(object):
                 }
 
                 stream = f"SingleClassifierResult: {json.dumps(single, ensure_ascii=False)}"
-                logger.info(f"单帧分类结果: {stream}")
+                logger.info(
+                    f"Frame: {frame.frame_id:05} - {frame.timestamp:.5f} => {result}"
+                )
                 yield f"{stream}\n\n"
 
                 frame = operator.get_frame_by_id(frame.frame_id + step)
 
-            logger.info(f"========== Classify Final ==========")
-
         except AssertionError as e:
             logger.error(e)
             yield f"ERROR: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
-            logger.info(f"========== Classify Final ==========")
 
         except Exception as e:
             logger.error(e)
             yield f"FATAL: {json.dumps({'fatal': str(e)}, ensure_ascii=False)}\n\n"
+
+        finally:
             logger.info(f"========== Classify Final ==========")
 
 

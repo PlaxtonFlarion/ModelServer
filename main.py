@@ -187,73 +187,77 @@ class InferenceService(object):
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
-        logger.info(f"========== Stream Begin ==========")
-        meta = FrameMeta(**meta_dict)
-        npz_data = numpy.load(io.BytesIO(file_bytes), allow_pickle=False)
+        try:
+            logger.info(f"========== Overflow Begin ==========")
+            meta = FrameMeta(**meta_dict)
+            npz_data = numpy.load(io.BytesIO(file_bytes), allow_pickle=False)
 
-        logger.info(f"video name: {meta.video_name}")
-        logger.info(f"video path: {meta.video_path}")
-        logger.info(f"frame count: {meta.frame_count}")
-        logger.info(f"frame shape: {meta.frame_shape}")
-        logger.info(f"frames data: {len(meta.frames_data)}")
-        logger.info(f"valid range: {len(meta.valid_range)}")
-        for cut_range in meta.valid_range:
-            logger.info(f"Cut Range: {cut_range}")
-        logger.info(f"step: {meta.step}")
-        logger.info(f"keep data: {meta.keep_data}")
-        logger.info(f"boost mode: {meta.boost_mode}")
+            logger.info(f"video name: {meta.video_name}")
+            logger.info(f"video path: {meta.video_path}")
+            logger.info(f"frame count: {meta.frame_count}")
+            logger.info(f"frame shape: {meta.frame_shape}")
+            logger.info(f"frames data: {len(meta.frames_data)}")
+            logger.info(f"valid range: {len(meta.valid_range)}")
+            for cut_range in meta.valid_range:
+                logger.info(f"Cut Range: {cut_range}")
+            logger.info(f"step: {meta.step}")
+            logger.info(f"keep data: {meta.keep_data}")
+            logger.info(f"boost mode: {meta.boost_mode}")
 
-        keep_data = False  # Notes: 服务端不返回图像数据，仅返回分类结果
+            keep_data = False  # Notes: 服务端不返回图像数据，仅返回分类结果
 
-        frame_arrays = [npz_data[key] for key in npz_data.files]
-        frame_list = [
-            VideoFrame(frame["frame_id"], frame["timestamp"], data)
-            for frame, data in zip(meta.frames_data, frame_arrays)
-        ]
+            frame_arrays = [npz_data[key] for key in npz_data.files]
+            frame_list = [
+                VideoFrame(frame["frame_id"], frame["timestamp"], data)
+                for frame, data in zip(meta.frames_data, frame_arrays)
+            ]
 
-        video = VideoObject(
-            meta.video_name, meta.video_path, meta.frame_count, tuple(frame_list)
-        )
-
-        cut_ranges = [
-            VideoCutRange(
-                video=video,
-                start=cr["start"],
-                end=cr["end"],
-                ssim=cr["ssim"],
-                psnr=cr["psnr"],
-                mse=cr["mse"],
-                start_time=cr["start_time"],
-                end_time=cr["end_time"]
+            video = VideoObject(
+                meta.video_name, meta.video_path, meta.frame_count, tuple(frame_list)
             )
-            for cr in meta.valid_range
-        ]
 
-        frame_channel = self.judge_channel(
-            meta.frame_shape
-        ) or self.judge_channel(video.frame_detail()[-1])
-        logger.info(f"Frame channel: {frame_channel}")
+            cut_ranges = [
+                VideoCutRange(
+                    video=video,
+                    start=cr["start"],
+                    end=cr["end"],
+                    ssim=cr["ssim"],
+                    psnr=cr["psnr"],
+                    mse=cr["mse"],
+                    start_time=cr["start_time"],
+                    end_time=cr["end_time"]
+                )
+                for cr in meta.valid_range
+            ]
 
-        final = self.kc if frame_channel != 1 else self.kf
-        model_channel = final.model.input_shape[-1]
-        logger.info(f"Model channel: {model_channel}")
+            frame_channel = self.judge_channel(
+                meta.frame_shape
+            ) or self.judge_channel(video.frame_detail()[-1])
+            logger.info(f"Frame channel: {frame_channel}")
 
-        # mismatched: typing.Any = lambda: frame_channel != model_channel
-        # if mismatched():
-        #     stream = {
-        #         "fatal": (
-        #             message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel} 回退分析模式"
-        #         )
-        #     }
-        #     yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
-        #
-        #     logger.info(f"========== Stream Final ==========")
-        #     return logger.error(message)
+            final = self.kc if frame_channel != 1 else self.kf
+            model_channel = final.model.input_shape[-1]
+            logger.info(f"Model channel: {model_channel}")
 
-        yield from self.kc.classify(
-            video, cut_ranges, meta.step, keep_data, meta.boost_mode
-        )
-        logger.info(f"========== Stream Final ==========")
+            mismatched: typing.Any = lambda: frame_channel != model_channel
+            if mismatched():
+                stream = {
+                    "fatal": (
+                        message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel} 回退分析模式"
+                    )
+                }
+                yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
+                return logger.error(message)
+
+            yield from self.kc.classify(
+                video, cut_ranges, meta.step, keep_data, meta.boost_mode
+            )
+        except Exception as e:
+            yield f"FATAL: {json.dumps({'fatal': str(e)}, ensure_ascii=False)}\n\n"
+            return logger.error(e)
+
+        finally:
+            logger.info(f"========== Overflow Final ==========")
 
     @modal.fastapi_endpoint(method="POST")
     @with_exception_handling
