@@ -98,8 +98,9 @@ class VideoObject(object):
         frame_size = frame.data.shape[::-1]
         frame_name = frame.__class__.__name__
         frame_info = f"[{every_cost:.2f} MB] [{total_cost:.2f} MB]"
+        frame_view = f"{frame_name} {frame_info} {frame_size}"
 
-        return f"{frame_name} {frame_info} {frame_size}", frame_size
+        return frame_view, frame_size
 
     def _read_from_doc(self) -> typing.Generator["VideoFrame", None, None]:
         pass
