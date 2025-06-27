@@ -249,7 +249,7 @@ class InferenceService(object):
                 yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
                 return logger.error(message)
 
-            yield from self.kc.classify(
+            yield from final.classify(
                 video, cut_ranges, meta.step, keep_data, meta.boost_mode
             )
         except Exception as e:
