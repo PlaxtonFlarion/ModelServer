@@ -453,10 +453,12 @@ class BaseClassifier(object):
         except AssertionError as e:
             logger.error(e)
             yield f"ERROR: {json.dumps({'error': str(e)}, ensure_ascii=False)}\n\n"
+            logger.info(f"========== Classify Final ==========")
 
         except Exception as e:
             logger.error(e)
             yield f"FATAL: {json.dumps({'fatal': str(e)}, ensure_ascii=False)}\n\n"
+            logger.info(f"========== Classify Final ==========")
 
 
 class BaseModelClassifier(BaseClassifier):

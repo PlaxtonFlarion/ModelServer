@@ -238,14 +238,19 @@ class InferenceService(object):
         model_channel = final.model.input_shape[-1]
         logger.info(f"Model channel: {model_channel}")
 
-        mismatched: typing.Any = lambda: frame_channel == model_channel  # todo
-        if mismatched():
-            stream = {"fatal": (message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel}")}
-            yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
-            return logger.error(message)
+        # mismatched: typing.Any = lambda: frame_channel != model_channel
+        # if mismatched():
+        #     stream = {
+        #         "fatal": (
+        #             message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel} 回退分析模式"
+        #         )
+        #     }
+        #     yield f"FATAL: {json.dumps(stream, ensure_ascii=False)}\n\n"
+        #
+        #     logger.info(f"========== Stream Final ==========")
+        #     return logger.error(message)
 
-        logger.info(f"Classifier: {final.__class__.__name__}")
-        yield from final.classify(
+        yield from self.kc.classify(
             video, cut_ranges, meta.step, keep_data, meta.boost_mode
         )
         logger.info(f"========== Stream Final ==========")
