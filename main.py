@@ -162,14 +162,9 @@ class InferenceService(object):
 
     @staticmethod
     def judge_channel(shape: tuple[int, ...]) -> int:
-        if len(shape) == 2:
-            return 1
-        elif len(shape) == 3:
-            if shape[2] in [1, 3, 4]:
-                return shape[2]
-            elif shape[0] in [1, 3, 4]:
-                return shape[0]
-        raise ValueError(f"未知帧格式 shape={shape}")
+        return shape[2] if len(shape) == 3 and shape[2] in (1, 3, 4) else \
+            shape[0] if len(shape) == 3 and shape[0] in (1, 3, 4) else \
+                1 if len(shape) == 2 else None
 
     @modal.enter()
     def startup(self):
@@ -239,8 +234,8 @@ class InferenceService(object):
             model_channel = final.model.input_shape[-1]
             logger.info(f"Model channel: {model_channel}")
 
-            mismatched: typing.Any = lambda: frame_channel != model_channel
-            if mismatched():
+            matched: typing.Callable[[], bool] = lambda: frame_channel == model_channel
+            if not matched():
                 stream = {
                     "fatal": (
                         message := f"通道数不匹配 FCH={frame_channel} MCH={model_channel} 回退分析模式"
