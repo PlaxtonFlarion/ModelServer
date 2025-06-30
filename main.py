@@ -21,13 +21,14 @@ from fastapi import (
 from fastapi.responses import (
     JSONResponse, StreamingResponse
 )
+from functools import wraps
 from loguru import logger
+from pydantic import BaseModel
+from starlette.requests import ClientDisconnect
 from services.sequential.classifier.keras_classifier import KerasStruct
 from services.sequential.cutter.cut_range import VideoCutRange
 from services.sequential.video import VideoFrame, VideoObject
 from common import craft
-from common.models import FrameMeta
-from common.decrator import require_token, with_exception_handling
 
 app = modal.App("inference")
 craft.init_logger()
@@ -45,6 +46,63 @@ image = modal.Image.debian_slim(
     ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
+
+
+class FrameMeta(BaseModel):
+    video_name: str
+    video_path: str
+    frame_count: int
+    frame_shape: tuple[int, ...]
+    frames_data: list
+    valid_range: list
+    step: typing.Optional[int] = None
+    keep_data: typing.Optional[bool] = None
+    boost_mode: typing.Optional[bool] = None
+
+
+def require_token(header_key: str = "X-Token"):
+    """
+    参数化装饰器：校验请求头中的签名 Token。
+    """
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, request, *args, **kwargs):
+            token = request.headers.get(header_key)
+            self.verify_token(token)
+            return await func(self, request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def with_exception_handling(func):
+    """
+    装饰器：用于 Modal 的 fastapi_endpoint 接口，统一异常处理
+    """
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except ClientDisconnect as e:
+            logger.error(e)
+            return JSONResponse(
+                content={"error": "Client disconnected during upload"}, status_code=499
+            )
+        except json.JSONDecodeError as e:
+            logger.error(e)
+            return JSONResponse(
+                content={"error": "Invalid JSON payload"}, status_code=400
+            )
+        except modal.exception.InvalidError as e:
+            logger.error(e)
+            return JSONResponse(
+                content={"error": f"Modal error: {str(e)}"}, status_code=500
+            )
+        except Exception as e:
+            logger.error(e)
+            return JSONResponse(
+                content={"error": f"Unexpected error: {str(e)}"}, status_code=500
+            )
+    return wrapper
 
 
 """
