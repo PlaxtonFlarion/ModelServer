@@ -48,18 +48,6 @@ image = modal.Image.debian_slim(
 secret = modal.Secret.from_name("SHARED_SECRET")
 
 
-class FrameMeta(BaseModel):
-    video_name: str
-    video_path: str
-    frame_count: int
-    frame_shape: tuple[int, ...]
-    frames_data: list
-    valid_range: list
-    step: typing.Optional[int] = None
-    keep_data: typing.Optional[bool] = None
-    boost_mode: typing.Optional[bool] = None
-
-
 def require_token(header_key: str = "X-Token"):
     """
     参数化装饰器：校验请求头中的签名 Token。
@@ -103,6 +91,18 @@ def with_exception_handling(func):
                 content={"error": f"Unexpected error: {str(e)}"}, status_code=500
             )
     return wrapper
+
+
+class FrameMeta(BaseModel):
+    video_name: str
+    video_path: str
+    frame_count: int
+    frame_shape: tuple[int, ...]
+    frames_data: list
+    valid_range: list
+    step: typing.Optional[int] = None
+    keep_data: typing.Optional[bool] = None
+    boost_mode: typing.Optional[bool] = None
 
 
 """
