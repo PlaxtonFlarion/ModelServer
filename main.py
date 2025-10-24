@@ -24,6 +24,7 @@ from fastapi.responses import (
 from functools import wraps
 from loguru import logger
 from pydantic import BaseModel
+from starlette.datastructures import FormData
 from starlette.requests import ClientDisconnect
 from services.sequential.classifier.keras_classifier import KerasStruct
 from services.sequential.cutter.cut_range import VideoCutRange
@@ -131,7 +132,7 @@ class InferenceService(object):
             )
 
         try:
-            payload, sig = token.rsplit('.', 1)
+            payload, sig      = token.rsplit('.', 1)
             app_id, expire_at = payload.split(':')
 
             if time.time() > int(expire_at):
@@ -157,6 +158,7 @@ class InferenceService(object):
             return JSONResponse(
                 content={"error": "Malformed token"}, status_code=401
             )
+
         except Exception as e:
             logger.error(e)
             return JSONResponse(
@@ -202,10 +204,9 @@ class InferenceService(object):
             logger.info(f"keep data: {meta.keep_data}")
             logger.info(f"boost mode: {meta.boost_mode}")
 
-            keep_data = False  # Notes: 服务端不返回图像数据，仅返回分类结果
-
+            keep_data    = False
             frame_arrays = [npz_data[key] for key in npz_data.files]
-            frame_list = [
+            frame_list   = [
                 VideoFrame(frame["frame_id"], frame["timestamp"], data)
                 for frame, data in zip(meta.frames_data, frame_arrays)
             ]
@@ -233,7 +234,7 @@ class InferenceService(object):
             ) or self.judge_channel(video.frame_detail()[-1])
             logger.info(f"Frame channel: {frame_channel}")
 
-            final = self.kc if frame_channel != 1 else self.kf
+            final         = self.kc if frame_channel != 1 else self.kf
             model_channel = final.model.input_shape[-1]
             logger.info(f"Model channel: {model_channel}")
 
@@ -261,11 +262,11 @@ class InferenceService(object):
     @with_exception_handling
     @require_token(header_key="X-Token")
     async def predict(self, request: "Request"):
-        form = await request.form()
-        frame_meta = form["frame_meta"]
+        form: "FormData"         = await request.form()
+        frame_meta: str          = form["frame_meta"]
         frame_file: "UploadFile" = form["frame_file"]
 
-        meta_dict = json.loads(frame_meta)
+        meta_dict  = json.loads(frame_meta)
         file_bytes = await frame_file.read()
 
         return StreamingResponse(
@@ -280,26 +281,26 @@ class InferenceService(object):
         轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
         """
         faint_model_dict = {
-            "fettle": "Online",
-            "dazzle": {
+            "fettle" : "Online",
+            "dazzle" : {
                 k: v for k, v in json.loads(self.kf.model.to_json()).items() if k != "config"
             }
         } if self.kf.model else {"fettle": "Offline"}
 
         color_model_dict = {
-            "fettle": "Online",
-            "dazzle": {
+            "fettle" : "Online",
+            "dazzle" : {
                 k: v for k, v in json.loads(self.kc.model.to_json()).items() if k != "config"
             }
         } if self.kc.model else {"fettle": "Offline"}
 
         content = {
-            "status": "OK",
-            "message": {
+            "status"    : "OK",
+            "message"   : {
                 "AquilaSequence-F": {**faint_model_dict},
                 "AquilaSequence-C": {**color_model_dict}
             },
-            "timestamp": int(time.time()),
+            "timestamp" : int(time.time()),
         }
 
         logger.info(content)
