@@ -297,8 +297,8 @@ class InferenceService(object):
         content = {
             "status"    : "OK",
             "message"   : {
-                "AquilaSequence-F": {**faint_model_dict},
-                "AquilaSequence-C": {**color_model_dict}
+                "AquilaSequence-F" : {**faint_model_dict},
+                "AquilaSequence-C" : {**color_model_dict}
             },
             "timestamp" : int(time.time()),
         }
