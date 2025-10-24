@@ -13,9 +13,15 @@ from services.sequential import toolbox
 
 class VideoFrame(object):
 
-    def __init__(self, frame_id: int, timestamp: float, data: "numpy.ndarray"):
-        self.frame_id: int = frame_id
-        self.timestamp: float = timestamp
+    def __init__(
+        self,
+        frame_id: int,
+        timestamp: float,
+        data: "numpy.ndarray"
+    ):
+
+        self.frame_id: int         = frame_id
+        self.timestamp: float      = timestamp
         self.data: "numpy.ndarray" = data
 
     def __str__(self):
@@ -25,8 +31,13 @@ class VideoFrame(object):
         return VideoFrame(self.frame_id, self.timestamp, self.data[:])
 
     def contain_image(
-        self, *, image_path: str = None, image_data: "numpy.ndarray" = None, **kwargs
+        self,
+        *,
+        image_path: typing.Optional[str] = None,
+        image_data: typing.Optional["numpy.ndarray"] = None,
+        **kwargs
     ) -> dict[str, typing.Any]:
+
         assert image_path or (
                 image_data is not None
         ), "should fill image_path or image_data"
@@ -41,8 +52,12 @@ class VideoFrame(object):
 
 class _BaseFrameOperator(object):
 
-    def __init__(self, video: "VideoObject"):
-        self.cur_ptr: int = 0
+    def __init__(
+        self,
+        video: "VideoObject"
+    ):
+
+        self.cur_ptr: int         = 0
         self.video: "VideoObject" = video
 
     def get_frame_by_id(self, frame_id: int) -> typing.Optional["VideoFrame"]:
@@ -70,11 +85,11 @@ class DocFrameOperator(_BaseFrameOperator):
 class VideoObject(object):
 
     def __init__(
-            self,
-            name: str,
-            path: str,
-            frame_count: int,
-            frames_data: typing.Optional[tuple["VideoFrame", ...]]
+        self,
+        name: str,
+        path: str,
+        frame_count: int,
+        frames_data: typing.Optional[tuple["VideoFrame", ...]]
     ):
 
         self.name = name

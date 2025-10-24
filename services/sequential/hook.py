@@ -53,8 +53,8 @@ class FrameSizeHook(BaseHook):
     ):
         super().__init__(*_, **__)
         self.compress_rate = compress_rate
-        self.target_size = target_size
-        self.not_grey = not_grey
+        self.target_size   = target_size
+        self.not_grey      = not_grey
         logger.debug(f"compress rate: {compress_rate}")
         logger.debug(f"target size: {target_size}")
 
@@ -92,7 +92,7 @@ class _AreaBaseHook(BaseHook):
         **__,
     ):
         super().__init__(*_, **__)
-        self.size = size
+        self.size   = size
         self.offset = offset or (0, 0)
         logger.debug(f"size: {self.size}")
         logger.debug(f"offset: {self.offset}")
@@ -117,7 +117,8 @@ class _AreaBaseHook(BaseHook):
         return input_h, input_w
 
     def convert_size_and_offset(
-        self, *origin_size
+        self,
+        *origin_size
     ) -> tuple[tuple, tuple]:
 
         size_h, size_w = self.convert(*origin_size, *self.size)
@@ -141,9 +142,9 @@ class CropHook(_AreaBaseHook):
             *frame.data.shape
         )
         frame.data[: height_range[0], :] = 0
-        frame.data[height_range[1]:, :] = 0
-        frame.data[:, : width_range[0]] = 0
-        frame.data[:, width_range[1]:] = 0
+        frame.data[height_range[1]:, :]  = 0
+        frame.data[:, : width_range[0]]  = 0
+        frame.data[:, width_range[1]:]   = 0
 
         return frame
 
@@ -172,9 +173,9 @@ class PaintCropHook(_AreaBaseHook):
             *frame.data.shape[:2]
         )
         frame.data[: height_range[0], :] = 0
-        frame.data[height_range[1]:, :] = 0
-        frame.data[:, : width_range[0]] = 0
-        frame.data[:, width_range[1]:] = 0
+        frame.data[height_range[1]:, :]  = 0
+        frame.data[:, : width_range[0]]  = 0
+        frame.data[:, width_range[1]:]   = 0
 
         return frame
 
@@ -207,8 +208,8 @@ class FrameSaveHook(BaseHook):
         super().do(frame, *_, **__)
 
         safe_timestamp = str(frame.timestamp).replace(".", "_")
-        frame_name = f"{frame.frame_id}({safe_timestamp}).png"
-        target_path = os.path.join(self.target_dir, frame_name)
+        frame_name     = f"{frame.frame_id}({safe_timestamp}).png"
+        target_path    = os.path.join(self.target_dir, frame_name)
 
         # 不能保存中文路径
         # cv2.imwrite(target_path, frame.data)

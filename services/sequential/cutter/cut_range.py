@@ -80,7 +80,11 @@ class VideoCutRange(object):
     contain_frame_id = contain
 
     def contain_image(
-        self, image_path: str = None, image_data: "numpy.ndarray" = None, *args, **kwargs
+        self,
+        image_path: str = None,
+        image_data: "numpy.ndarray" = None,
+        *args,
+        **kwargs
     ) -> dict[str, typing.Any]:
         target_id = self.pick(*args, **kwargs)[0]
         operator = self.video.get_operator()
@@ -91,7 +95,11 @@ class VideoCutRange(object):
         )
 
     def pick(
-        self, frame_count: int = None, is_random: bool = None, *_, **__
+        self,
+        frame_count: int = None,
+        is_random: bool = None,
+        *_,
+        **__
     ) -> list[int]:
 
         if not frame_count:
@@ -116,7 +124,10 @@ class VideoCutRange(object):
         return result
 
     def get_frames(
-        self, frame_id_list: list[int], *_, **__
+        self,
+        frame_id_list: list[int],
+        *_,
+        **__
     ) -> list["VideoFrame"]:
 
         out = list()
@@ -134,8 +145,12 @@ class VideoCutRange(object):
         return self.end - self.start + 1
 
     def is_stable(
-        self, threshold: float = None, psnr_threshold: float = None, **_
+        self,
+        threshold: float = None,
+        psnr_threshold: float = None,
+        **_
     ) -> bool:
+
         threshold = threshold if threshold else const.THRES
 
         res = numpy.mean(self.ssim) > threshold

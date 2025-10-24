@@ -34,10 +34,11 @@ class SingleClassifierResult(object):
         stage: str,
         data: "numpy.ndarray" = None,
     ):
-        self.video_path: str = video_path
-        self.frame_id: int = frame_id
-        self.timestamp: float = timestamp
-        self.stage: str = stage
+
+        self.video_path: str       = video_path
+        self.frame_id: int         = frame_id
+        self.timestamp: float      = timestamp
+        self.stage: str            = stage
         self.data: "numpy.ndarray" = data
 
     def to_video_frame(self, *args, **kwargs) -> "VideoFrame":
@@ -61,7 +62,11 @@ class SingleClassifierResult(object):
         )
 
     def contain_image(
-            self, *, image_path: str = None, image_data: "numpy.ndarray" = None, **kwargs
+        self,
+        *,
+        image_path: typing.Optional[str] = None,
+        image_data: typing.Optional["numpy.ndarray"] = None,
+        **kwargs
     ) -> dict[str, typing.Any]:
 
         return self.to_video_frame().contain_image(
@@ -80,7 +85,7 @@ class SingleClassifierResult(object):
 class DiffResult(object):
 
     def __init__(self, origin_data: "ClassifierResult", another_data: "ClassifierResult"):
-        self.origin_data = origin_data
+        self.origin_data  = origin_data
         self.another_data = another_data
 
     @property
@@ -100,11 +105,11 @@ class DiffResult(object):
 
 class ClassifierResult(object):
 
-    LABEL_DATA: str = "data"
+    LABEL_DATA: str       = "data"
     LABEL_VIDEO_PATH: str = "video_path"
 
     def __init__(self, data: list["SingleClassifierResult"]):
-        self.video_path: str = data[0].video_path
+        self.video_path: str                      = data[0].video_path
         self.data: list["SingleClassifierResult"] = data
 
     def get_timestamp_list(self) -> list[float]:
@@ -170,10 +175,11 @@ class ClassifierResult(object):
     def get_stage_range(self) -> list[list["SingleClassifierResult"]]:
         result: list[list["SingleClassifierResult"]] = []
 
-        cur = self.data[0]
+        cur       = self.data[0]
         cur_index = cur.frame_id - 1
-        ptr = cur_index
-        length = self.get_length()
+        ptr       = cur_index
+        length    = self.get_length()
+
         while ptr < length:
             next_one = self.data[ptr]
             if cur.stage == next_one.stage:
@@ -186,8 +192,9 @@ class ClassifierResult(object):
 
         assert len(result) > 0, "video seems to only contain one stage"
 
-        last_data = self.data[-1]
+        last_data   = self.data[-1]
         last_result = result[-1][-1]
+
         if last_result != last_data:
             result.append(
                 self.data[last_result.frame_id - 1 + 1: last_data.frame_id - 1 + 1]
@@ -206,7 +213,7 @@ class ClassifierResult(object):
 
     def get_not_stable_stage_range(self) -> list[list["SingleClassifierResult"]]:
         unstable = self.get_specific_stage_range(const.UNSTABLE_FLAG)
-        ignore = self.get_specific_stage_range(const.IGNORE_FLAG)
+        ignore   = self.get_specific_stage_range(const.IGNORE_FLAG)
 
         return sorted(unstable + ignore, key=lambda x: x[0].stage)
 
@@ -324,7 +331,7 @@ class BaseClassifier(object):
             compress_rate = 0.2
 
         self.compress_rate = compress_rate
-        self.target_size = target_size
+        self.target_size   = target_size
         # logger.debug(f"compress rate: {self.compress_rate}")
         # logger.debug(f"target size: {self.target_size}")
 
@@ -404,7 +411,7 @@ class BaseClassifier(object):
     ) -> typing.Generator[str, None, None]:
 
         logger.debug(f"classify with {self.__class__.__name__}")
-        step = step or 1
+        step       = step or 1
         boost_mode = boost_mode or True
 
         logger.info(f"========== Classify Begin ==========")
@@ -412,7 +419,7 @@ class BaseClassifier(object):
             assert bool(boost_mode) == bool(valid_range), "boost_mode requires valid_range"
 
             operator = video.get_operator()
-            frame = operator.get_frame_by_id(1)
+            frame    = operator.get_frame_by_id(1)
 
             prev_result: typing.Optional[str] = None
             while frame is not None:
@@ -423,7 +430,7 @@ class BaseClassifier(object):
                     logger.debug(
                         f"frame {frame.frame_id} ({frame.timestamp}) not in target range, skip"
                     )
-                    result = const.IGNORE_FLAG
+                    result      = const.IGNORE_FLAG
                     prev_result = None
                 else:
                     if boost_mode and (prev_result is not None):
@@ -435,11 +442,11 @@ class BaseClassifier(object):
                     )
 
                 single = {
-                    "video_path": video.path,
-                    "frame_id": frame.frame_id,
-                    "timestamp": frame.timestamp,
-                    "result": result,
-                    "frame_data": frame.data if keep_data else None,
+                    "video_path" : video.path,
+                    "frame_id"   : frame.frame_id,
+                    "timestamp"  : frame.timestamp,
+                    "result"     : result,
+                    "frame_data" : frame.data if keep_data else None,
                 }
 
                 stream = f"SingleClassifierResult: {json.dumps(single, ensure_ascii=False)}"

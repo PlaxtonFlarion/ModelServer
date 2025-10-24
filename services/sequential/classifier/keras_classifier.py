@@ -36,11 +36,11 @@ class KerasStruct(BaseModelClassifier):
         # Model
         self.model: typing.Optional["keras.Sequential"] = None
         # Model Config
-        self.score_threshold: float = kwargs.get("score_threshold", 0.0)
-        self.nb_train_samples: int = kwargs.get("nb_train_samples", 64)
+        self.score_threshold: float     = kwargs.get("score_threshold", 0.0)
+        self.nb_train_samples: int      = kwargs.get("nb_train_samples", 64)
         self.nb_validation_samples: int = kwargs.get("nb_validation_samples", 64)
-        self.epochs: int = kwargs.get("epochs", 20)
-        self.batch_size: int = kwargs.get("batch_size", 4)
+        self.epochs: int                = kwargs.get("epochs", 20)
+        self.batch_size: int            = kwargs.get("batch_size", 4)
 
         logger.debug(f"score threshold: {self.score_threshold}")
         logger.debug(f"nb train samples: {self.nb_train_samples}")
@@ -171,16 +171,17 @@ class KerasStruct(BaseModelClassifier):
         return final_model
 
     def predict(self, pic_path: str, *args, **kwargs) -> str:
-        picture = toolbox.imread(pic_path)
+        picture    = toolbox.imread(pic_path)
         fake_frame = VideoFrame(0, 0.0, picture)
         fake_frame = self._apply_hook(fake_frame, *args, **kwargs)
+
         return self.predict_with_object(fake_frame.data)
 
     def predict_with_object(self, frame: "numpy.ndarray") -> str:
-        frame = cv2.resize(frame, dsize=self.follow_cv_size)
-        frame = numpy.expand_dims(frame, axis=[0, -1])
-        frame_result = self.model.predict(frame, verbose=0)
-        frame_tag = str(numpy.argmax(frame_result, axis=1)[0])
+        frame            = cv2.resize(frame, dsize=self.follow_cv_size)
+        frame            = numpy.expand_dims(frame, axis=[0, -1])
+        frame_result     = self.model.predict(frame, verbose=0)
+        frame_tag        = str(numpy.argmax(frame_result, axis=1)[0])
         frame_confidence = frame_result.max()
 
         if frame_confidence < self.score_threshold:

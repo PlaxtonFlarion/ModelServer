@@ -15,6 +15,7 @@ import contextlib
 import subprocess
 import numpy as np
 from loguru import logger
+from findit import FindIt
 from base64 import b64encode
 from skimage.feature import (
     hog, local_binary_pattern
@@ -42,11 +43,14 @@ def video_jump(video_cap: "cv2.VideoCapture", frame_id: int) -> None:
 
 def compare_ssim(pic1: "np.ndarray", pic2: "np.ndarray") -> float:
     pic1, pic2 = [turn_grey(i) for i in [pic1, pic2]]
+
     return origin_compare_ssim(pic1, pic2)
 
 
 def multi_compare_ssim(
-    pic1_list: list, pic2_list: list, hooks: typing.Optional[list] = None
+    pic1_list: list,
+    pic2_list: list,
+    hooks: typing.Optional[list] = None
 ) -> list[float]:
 
     from services.sequential.video import VideoFrame
@@ -76,12 +80,16 @@ def get_current_frame_time(video_cap: "cv2.VideoCapture") -> float:
 
 def imread(img_path: str, *_, **__) -> "np.ndarray":
     assert os.path.isfile(img_path), f"file {img_path} is not existed"
+
     return cv2.imread(img_path, *_, **__)
 
 
 def get_frame_time(
-    video_cap: "cv2.VideoCapture", frame_id: int, recover: bool = None
+    video_cap: "cv2.VideoCapture",
+    frame_id: int,
+    recover: bool = None
 ) -> float:
+
     current = get_current_frame_id(video_cap)
     video_jump(video_cap, frame_id)
     result = get_current_frame_time(video_cap)
@@ -99,11 +107,14 @@ def get_frame_count(video_cap: "cv2.VideoCapture") -> int:
 def get_frame_size(video_cap: "cv2.VideoCapture") -> tuple[int, int]:
     h = video_cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
     w = video_cap.get(cv2.CAP_PROP_FRAME_WIDTH)
+
     return int(w), int(h)
 
 
 def get_frame(
-    video_cap: "cv2.VideoCapture", frame_id: int, recover: typing.Optional[bool] = None
+    video_cap: "cv2.VideoCapture",
+    frame_id: int,
+    recover: typing.Optional[bool] = None
 ) -> "np.ndarray":
 
     current = get_current_frame_id(video_cap)
@@ -125,6 +136,7 @@ def turn_grey(old: "np.ndarray") -> "np.ndarray":
 
 def turn_binary(old: "np.ndarray") -> "np.ndarray":
     grey = turn_grey(old).astype("uint8")
+
     return cv2.adaptiveThreshold(
         grey, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2
     )
@@ -202,17 +214,22 @@ def compress_frame(
 
 def get_timestamp_str() -> str:
     time_str = time.strftime("%Y%m%d%H%M%S", time.localtime())
-    salt = random.randint(10, 99)
+    salt     = random.randint(10, 99)
+
     return f"{time_str}{salt}"
 
 
 def np2b64str(frame: "np.ndarray") -> str:
     buffer = cv2.imencode(".png", frame)[1]
+
     return b64encode(buffer).decode()
 
 
 def fps_convert(
-    target_fps: int, source_path: str, target_path: str, ffmpeg_exe: typing.Optional[str] = None
+    target_fps: int,
+    source_path: str,
+    target_path: str,
+    ffmpeg_exe: typing.Optional[str] = None
 ) -> int:
 
     ffmpeg_exe = ffmpeg_exe if ffmpeg_exe else r"ffmpeg"
@@ -251,7 +268,9 @@ def match_template_with_object(
 
 
 def match_template_with_path(
-    template: str, target: "np.ndarray", **kwargs
+    template: str,
+    target: "np.ndarray",
+    **kwargs
 ) -> dict[str, typing.Any]:
 
     assert os.path.isfile(template), f"image {template} not existed"
