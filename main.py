@@ -74,22 +74,34 @@ def with_exception_handling(func):
         except ClientDisconnect as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": "Client disconnected during upload"}, status_code=499
+                content={
+                    "Error": "Client disconnected during upload"
+                },
+                status_code=499
             )
         except json.JSONDecodeError as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": "Invalid JSON payload"}, status_code=400
+                content={
+                    "Error": "Invalid JSON payload"
+                },
+                status_code=400
             )
         except modal.exception.InvalidError as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": f"Modal error: {str(e)}"}, status_code=500
+                content={
+                    "Error": f"Modal error: {str(e)}"
+                },
+                status_code=500
             )
         except Exception as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": f"Unexpected error: {str(e)}"}, status_code=500
+                content={
+                    "Error": f"Unexpected error: {str(e)}"
+                },
+                status_code=500
             )
     return wrapper
 
@@ -128,17 +140,24 @@ class InferenceService(object):
         logger.info(f"Verify token: {token}")
         if not token:
             return JSONResponse(
-                content={"error": "Unauthorized", "message": "Token missing"}, status_code=401
+                content={
+                    "Error"   : "Unauthorized",
+                    "Message" : "Token missing"
+                },
+                status_code=401
             )
 
         try:
-            payload, sig      = token.rsplit('.', 1)
-            app_id, expire_at = payload.split(':')
+            payload, sig      = token.rsplit(".", 1)
+            app_id, expire_at = payload.split(":")
 
             if time.time() > int(expire_at):
-                logger.warning(f"Token has expired")
+                logger.warning("Token has expired")
                 return JSONResponse(
-                    content={"error": "Token has expired"}, status_code=401
+                    content={
+                        "Error": "Token has expired"
+                    },
+                    status_code=401
                 )
 
             expected_sig = hmac.new(
@@ -149,20 +168,30 @@ class InferenceService(object):
             if not (compare := hmac.compare_digest(expected_b64, sig)):
                 logger.warning("Token signature mismatch")
                 return JSONResponse(
-                    content={"error": "Invalid token signature"}, status_code=401
+                    content={
+                        "Error": "Invalid token signature"
+                    },
+                    status_code=401
                 )
             return compare
 
         except ValueError as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": "Malformed token"}, status_code=401
+                content={
+                    "Error": "Malformed token"
+                },
+                status_code=401
             )
 
         except Exception as e:
             logger.error(e)
             return JSONResponse(
-                content={"error": "Unauthorized", "message": str(e)}, status_code=401
+                content={
+                    "Error"   : "Unauthorized",
+                    "Message" : str(e)
+                },
+                status_code=401
             )
 
     @staticmethod
