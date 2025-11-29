@@ -305,6 +305,7 @@ class InferenceService(object):
 
     @modal.fastapi_endpoint(method="GET")
     @with_exception_handling
+    @require_token(header_key="X-Token")
     async def service(self):
         """
         轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
