@@ -349,6 +349,7 @@ class InferenceService(object):
 
 
 if __name__ == "__main__":
+    # Notes: ==== https://modal.com/ ====
     # modal run main.py
     # modal deploy main.py
     # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
