@@ -15,20 +15,22 @@ import numpy
 import base64
 import typing
 import hashlib
-from fastapi import (
-    UploadFile, Request
-)
-from fastapi.responses import (
-    JSONResponse, StreamingResponse
-)
+
 from functools import wraps
-from loguru import logger
+
+from loguru   import logger
 from pydantic import BaseModel
+
+from fastapi           import UploadFile, Request
+from fastapi.responses import JSONResponse, StreamingResponse
+
 from starlette.datastructures import FormData
-from starlette.requests import ClientDisconnect
+from starlette.requests       import ClientDisconnect
+
 from services.sequential.classifier.keras_classifier import KerasStruct
-from services.sequential.cutter.cut_range import VideoCutRange
-from services.sequential.video import VideoFrame, VideoObject
+from services.sequential.cutter.cut_range            import VideoCutRange
+from services.sequential.video                       import VideoFrame, VideoObject
+
 from common import craft
 
 app = modal.App("inference")
