@@ -291,6 +291,10 @@ class InferenceService(object):
     @with_exception_handling
     @require_token(header_key="X-Token")
     async def predict(self, request: "Request"):
+        """推理接口，用于返回模型推理结果。"""
+
+        logger.info(f"Request: {request.method} {request.url}")
+
         form: "FormData"         = await request.form()
         frame_meta: str          = form["frame_meta"]
         frame_file: "UploadFile" = form["frame_file"]
@@ -306,10 +310,11 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="GET")
     @with_exception_handling
     @require_token(header_key="X-Token")
-    async def service(self):
-        """
-        轻量级心跳接口，用于保持容器活跃并返回模型加载状态。
-        """
+    async def service(self, request: "Request"):
+        """轻量级心跳接口，用于保持容器活跃并返回模型加载状态。"""
+
+        logger.info(f"Request: {request.method} {request.url}")
+
         faint_model_dict = {
             "fettle" : "Online",
             "dazzle" : {
