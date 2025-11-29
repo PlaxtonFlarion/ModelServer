@@ -33,10 +33,13 @@ from services.sequential.video                       import VideoFrame, VideoObj
 
 from common import craft
 
+# Notes: ==== 启动应用 ====
 app = modal.App("inference")
+
+# Notes: ==== 启动日志 ====
 craft.init_logger()
 
-# 构建镜像 & 模型挂载目录
+# Notes: ==== 构建镜像 ====
 image = modal.Image.debian_slim(
     python_version="3.11"
 ).pip_install_from_requirements(
@@ -52,9 +55,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
 
 
 def require_token(header_key: str = "X-Token"):
-    """
-    参数化装饰器：校验请求头中的签名 Token。
-    """
+    """鉴权中间件"""
+
     def decorator(func):
         @wraps(func)
         async def wrapper(self, request, *args, **kwargs):
@@ -66,9 +68,8 @@ def require_token(header_key: str = "X-Token"):
 
 
 def with_exception_handling(func):
-    """
-    装饰器：用于 Modal 的 fastapi_endpoint 接口，统一异常处理
-    """
+    """异常中间件"""
+
     @wraps(func)
     async def wrapper(*args, **kwargs):
         try:
@@ -129,6 +130,7 @@ class FrameMeta(BaseModel):
     scaledown_window=300
 )
 class InferenceService(object):
+    """InferenceService"""
 
     kf: typing.Optional["KerasStruct"] = None
     kc: typing.Optional["KerasStruct"] = None
@@ -136,6 +138,8 @@ class InferenceService(object):
     shared_secret: typing.Optional[str] = None
 
     def verify_token(self, token: str) -> typing.Union["JSONResponse", bool]:
+        """鉴权"""
+
         logger.info(f"Verify token: {token}")
         if not token:
             return JSONResponse(
@@ -195,12 +199,14 @@ class InferenceService(object):
 
     @staticmethod
     def judge_channel(shape: tuple[int, ...]) -> int:
+        """色彩"""
         return shape[2] if len(shape) == 3 and shape[2] in (1, 3, 4) else \
             shape[0] if len(shape) == 3 and shape[0] in (1, 3, 4) else \
                 1 if len(shape) == 2 else None
 
     @modal.enter()
     def startup(self):
+        """预热"""
         logger.info("KF model loading ...")
         self.kf = KerasStruct()
         self.kf.load_model("/root/models/Keras_Gray_W256_H256")
@@ -215,6 +221,7 @@ class InferenceService(object):
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
+        """推理"""
         try:
             logger.info(f"========== Overflow Begin ==========")
             meta = FrameMeta(**meta_dict)
@@ -290,7 +297,7 @@ class InferenceService(object):
     @with_exception_handling
     @require_token(header_key="X-Token")
     async def predict(self, request: "Request"):
-        """推理接口，用于返回模型推理结果。"""
+        """推理接口"""
 
         logger.info(f"Request: {request.method} {request.url}")
 
@@ -310,7 +317,7 @@ class InferenceService(object):
     @with_exception_handling
     @require_token(header_key="X-Token")
     async def service(self, request: "Request"):
-        """轻量级心跳接口，用于保持容器活跃并返回模型加载状态。"""
+        """心跳接口"""
 
         logger.info(f"Request: {request.method} {request.url}")
 
