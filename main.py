@@ -120,16 +120,13 @@ class FrameMeta(BaseModel):
     boost_mode: typing.Optional[bool] = None
 
 
-"""
-gpu    :: A10G
-memory :: 8G/16G 8192/16384
-"""
 @app.cls(
     image=image,
-    memory=8192,
-    max_containers=2,
-    scaledown_window=300,
-    secrets=[secret]
+    gpu="A10G",
+    secrets=[secret],
+    memory=16384,
+    max_containers=3,
+    scaledown_window=300
 )
 class InferenceService(object):
 
