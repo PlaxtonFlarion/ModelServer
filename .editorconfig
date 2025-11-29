@@ -19,10 +19,6 @@ trim_trailing_whitespace = false
 end_of_line = crlf
 indent_style = tab
 
-# Inno Setup 安装脚本：使用 CRLF + 4 空格缩进（可改 tab）
-[*.iss]
-end_of_line = crlf
-
 # Unix Shell 脚本：使用 LF + 2空格缩进（便于嵌套）
 [*.sh]
 indent_size = 2
