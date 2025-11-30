@@ -24,13 +24,10 @@ from schema.meta import FrameMeta
 from common import craft, toolkit
 
 
-# Notes: ==== 启动应用 ====
 app = modal.App("inference")
 
-# Notes: ==== 启动日志 ====
 craft.init_logger()
 
-# Notes: ==== 构建镜像 ====
 image = modal.Image.debian_slim(
     python_version="3.11"
 ).pip_install_from_requirements(
