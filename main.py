@@ -5,7 +5,6 @@
 #  |_|  |_|\__,_|_|_| |_|
 #
 
-import os
 import io
 import json
 import time
@@ -60,8 +59,6 @@ class InferenceService(object):
     kf: typing.Optional["KerasStruct"] = None
     kc: typing.Optional["KerasStruct"] = None
 
-    shared_secret: typing.Optional[str] = None
-
     @modal.enter()
     def startup(self):
         """预热"""
@@ -74,8 +71,6 @@ class InferenceService(object):
         self.kc = KerasStruct()
         self.kc.load_model("/root/models/Keras_Hued_W256_H256")
         logger.info("✅ KC model loaded")
-
-        self.shared_secret = os.environ["SHARED_SECRET"]
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
@@ -153,7 +148,7 @@ class InferenceService(object):
 
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
-    @auth_middleware(shared_secret, key="X-Token")
+    @auth_middleware("X-Token")
     async def predict(self, request: "Request"):
         """推理接口"""
 
@@ -173,11 +168,11 @@ class InferenceService(object):
 
     @modal.fastapi_endpoint(method="GET")
     @exception_middleware
-    @auth_middleware(shared_secret, key="X-Token")
+    @auth_middleware("X-Token")
     async def service(self, request: "Request"):
         """心跳接口"""
 
-        logger.info(f"$$ Request: {request.method} {request.url}")
+        logger.info(f"Request: {request.method} {request.url}")
 
         faint_model_dict = {
             "fettle" : "Online",

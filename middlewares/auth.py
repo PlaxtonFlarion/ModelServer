@@ -5,6 +5,7 @@
 # /_/   \_\__,_|\__|_| |_| |_|  |_|_|\__,_|\__,_|_|\___| \_/\_/ \__,_|_|  \___|
 #
 
+import os
 import hmac
 import time
 import base64
@@ -16,21 +17,23 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 
 
-def auth_middleware(shared_secret: str, key: str = "X-Token"):
+def auth_middleware(key: str = "X-Token"):
     """鉴权中间件"""
 
     def decorator(func):
         @wraps(func)
         async def wrapper(self, request: "Request", *args, **kwargs):
             token = request.headers.get(key)
-            __verify_token(shared_secret, token)
+            verify_token(token)
             return await func(self, request, *args, **kwargs)
         return wrapper
     return decorator
 
 
-def __verify_token(shared_secret: str, token: str) -> typing.Union["JSONResponse", bool]:
+def verify_token(token: str) -> typing.Union["JSONResponse", bool]:
     """鉴权"""
+
+    shared_secret = os.environ["SHARED_SECRET"]
 
     logger.info(f"Verify token: {token}")
     if not token:
