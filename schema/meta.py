@@ -1,8 +1,17 @@
+#  __  __      _
+# |  \/  | ___| |_ __ _
+# | |\/| |/ _ \ __/ _` |
+# | |  | |  __/ || (_| |
+# |_|  |_|\___|\__\__,_|
+#
+
 import typing
 from pydantic import BaseModel
 
 
 class FrameMeta(BaseModel):
+    """视频帧元数据"""
+
     video_name: str
     video_path: str
     frame_count: int
