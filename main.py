@@ -12,16 +12,24 @@ import modal
 import numpy
 import typing
 from loguru import logger
-from fastapi import UploadFile, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi import (
+    UploadFile, Request
+)
+from fastapi.responses import (
+    JSONResponse, StreamingResponse
+)
 from starlette.datastructures import FormData
 from services.sequential.classifier.keras_classifier import KerasStruct
 from services.sequential.cutter.cut_range import VideoCutRange
-from services.sequential.video import VideoFrame, VideoObject
+from services.sequential.video import (
+    VideoFrame, VideoObject
+)
 from middlewares.auth import auth_middleware
 from middlewares.exception import exception_middleware
 from schema.meta import FrameMeta
-from common import craft, toolkit
+from common import (
+    craft, toolkit
+)
 
 
 app = modal.App("inference")
