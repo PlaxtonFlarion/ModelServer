@@ -33,11 +33,6 @@ from services.sequential.video                       import VideoFrame, VideoObj
 
 from common import craft
 
-from middlewares.auth      import require_token
-from middlewares.exception import with_exception_handling
-
-from schema.meta import FrameMeta
-
 # Notes: ==== 启动应用 ====
 app = modal.App("inference")
 
@@ -59,9 +54,76 @@ image = modal.Image.debian_slim(
 secret = modal.Secret.from_name("SHARED_SECRET")
 
 
+class FrameMeta(BaseModel):
+    video_name: str
+    video_path: str
+    frame_count: int
+    frame_shape: tuple[int, ...]
+    frames_data: list
+    valid_range: list
+    step: typing.Optional[int] = None
+    keep_data: typing.Optional[bool] = None
+    boost_mode: typing.Optional[bool] = None
+
+
+def require_token(header_key: str = "X-Token"):
+    """鉴权中间件"""
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(self, request, *args, **kwargs):
+            token = request.headers.get(header_key)
+            self.verify_token(token)
+            return await func(self, request, *args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def with_exception_handling(func):
+    """异常中间件"""
+
+    @wraps(func)
+    async def wrapper(*args, **kwargs):
+        try:
+            return await func(*args, **kwargs)
+        except ClientDisconnect as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error": "Client disconnected during upload"
+                },
+                status_code=499
+            )
+        except json.JSONDecodeError as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error": "Invalid JSON payload"
+                },
+                status_code=400
+            )
+        except modal.exception.InvalidError as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error": f"Modal error: {str(e)}"
+                },
+                status_code=500
+            )
+        except Exception as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error": f"Unexpected error: {str(e)}"
+                },
+                status_code=500
+            )
+    return wrapper
+
+
 @app.cls(
     image=image,
-    gpu="A10G",
+    # gpu="A10G",
     secrets=[secret],
     memory=16384,
     max_containers=3,
@@ -74,6 +136,66 @@ class InferenceService(object):
     kc: typing.Optional["KerasStruct"] = None
 
     shared_secret: typing.Optional[str] = None
+
+    def verify_token(self, token: str) -> typing.Union["JSONResponse", bool]:
+        """鉴权"""
+
+        logger.info(f"Verify token: {token}")
+        if not token:
+            return JSONResponse(
+                content={
+                    "Error"   : "Unauthorized",
+                    "Message" : "Token missing"
+                },
+                status_code=401
+            )
+
+        try:
+            payload, sig      = token.rsplit(".", 1)
+            app_id, expire_at = payload.split(":")
+
+            if time.time() > int(expire_at):
+                logger.warning("Token has expired")
+                return JSONResponse(
+                    content={
+                        "Error": "Token has expired"
+                    },
+                    status_code=401
+                )
+
+            expected_sig = hmac.new(
+                self.shared_secret.encode(), payload.encode(), hashlib.sha256
+            ).digest()
+            expected_b64 = base64.b64encode(expected_sig).decode()
+
+            if not (compare := hmac.compare_digest(expected_b64, sig)):
+                logger.warning("Token signature mismatch")
+                return JSONResponse(
+                    content={
+                        "Error": "Invalid token signature"
+                    },
+                    status_code=401
+                )
+            return compare
+
+        except ValueError as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error": "Malformed token"
+                },
+                status_code=401
+            )
+
+        except Exception as e:
+            logger.error(e)
+            return JSONResponse(
+                content={
+                    "Error"   : "Unauthorized",
+                    "Message" : str(e)
+                },
+                status_code=401
+            )
 
     @staticmethod
     def judge_channel(shape: tuple[int, ...]) -> int:
@@ -173,7 +295,7 @@ class InferenceService(object):
 
     @modal.fastapi_endpoint(method="POST")
     @with_exception_handling
-    @require_token(shared_secret, header_key="X-Token")
+    @require_token(header_key="X-Token")
     async def predict(self, request: "Request"):
         """推理接口"""
 
@@ -193,11 +315,11 @@ class InferenceService(object):
 
     @modal.fastapi_endpoint(method="GET")
     @with_exception_handling
-    @require_token(shared_secret, header_key="X-Token")
+    @require_token(header_key="X-Token")
     async def service(self, request: "Request"):
         """心跳接口"""
 
-        logger.info(f"Request: {request.method} {request.url}")
+        logger.info(f"@@@@@@@@@@ Request: {request.method} {request.url}")
 
         faint_model_dict = {
             "fettle" : "Online",

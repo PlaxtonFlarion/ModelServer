@@ -46,3 +46,7 @@ def with_exception_handling(func):
                 status_code=500
             )
     return wrapper
+
+
+if __name__ == '__main__':
+    pass
