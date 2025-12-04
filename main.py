@@ -48,14 +48,15 @@ image = modal.Image.debian_slim(
     remote_path="/root",
     ignore=["**/.venv", "**/venv"]
 )
+
 secret = modal.Secret.from_name("SHARED_SECRET")
 volume = modal.Volume.from_name("model-cache")
 
 
 @app.cls(
     image=image,
-    gpu="A10G",
-    volumes={"/root/models": volume},     # 🔥 把模型目录持久挂载到Volume
+    # gpu="A10G",
+    volumes={"/root/models": modal.Volume.from_name("model-cache")},     # 🔥 把模型目录持久挂载到Volume
     secrets=[secret],
     memory=8192,
     max_containers=2,
@@ -310,6 +311,11 @@ class InferenceService(object):
 if __name__ == "__main__":
     # Notes: ==== https://modal.com/ ====
     # modal run main.py
+    # modal volume create model-cache
+    # modal volume put model-cache ./models/bge_base /root/models/bge_base
+    # modal volume put model-cache ./models/cross_encoder /root/models/cross_encoder
+    # modal volume put model-cache ./models/sequence/Keras_Gray_W256_H256 /root/models/sequence/Keras_Gray_W256_H256
+    # modal volume put model-cache ./models/sequence/Keras_Hued_W256_H256 /root/models/sequence/Keras_Hued_W256_H256
     # modal deploy main.py
     # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     pass
