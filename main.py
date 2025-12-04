@@ -222,7 +222,7 @@ class InferenceService(object):
     @auth_middleware("X-Token")
     async def embedding(self, request: "Request"):
         """
-        批量Embedding接口（函数名不变，兼容单输入/批量输入）
+        批量Embedding接口（兼容单输入/批量输入）
 
         支持两种参数：
         1) { "text": "立即支付 按钮" }
@@ -240,10 +240,7 @@ class InferenceService(object):
         body = await request.json()
 
         # 兼容单文本 → 自动转列表
-        if "text" in body:
-            texts = [body["text"]]
-        else:
-            texts = body.get("texts", [])
+        texts = [body["text"]] if "text" in body else body.get("texts", [])
 
         if not texts or not isinstance(texts, list):
             return JSONResponse(content={"error": "text or texts required"}, status_code=400)
@@ -260,7 +257,7 @@ class InferenceService(object):
             "vectors" : embeddings.astype("float32").tolist(),
             "count"   : len(embeddings),
             "dim"     : embeddings.shape[1],
-            "model"   : "bge-base"
+            "model"   : "BAAI/bge-base-en-v1.5"
         })
 
     @modal.fastapi_endpoint(method="POST")
