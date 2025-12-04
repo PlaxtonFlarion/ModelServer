@@ -275,7 +275,7 @@ class InferenceService(object):
         请求 JSON:
         {
           "query": "立即支付 按钮",
-          "candidates": [
+          "candidate": [
             "继续支付 按钮",
             "去结算 按钮",
             "立即支付 按钮"
@@ -289,16 +289,16 @@ class InferenceService(object):
         }
         """
 
-        body       = await request.json()
-        query      = body.get("query")
-        candidates = body.get("candidates")
+        body      = await request.json()
+        query     = body.get("query")
+        candidate = body.get("candidate")
 
-        if not query or not isinstance(candidates, list) or not candidates:
+        if not query or not isinstance(candidate, list) or not candidate:
             return JSONResponse(
                 content={"error": "query and candidates (list) are required"}, status_code=400,
             )
 
-        candidate_pairs = [[query, t] for t in candidates]
+        candidate_pairs = [[query, t] for t in candidate]
         rerank_scores   = self.reranker.predict(candidate_pairs)
 
         scores = [float(s) for s in rerank_scores]
