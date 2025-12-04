@@ -7,7 +7,7 @@
 
 from functools import wraps
 from fastapi import Request
-from common import toolkit
+from utils import toolset
 
 
 def auth_middleware(key: str = "X-Token"):
@@ -17,7 +17,7 @@ def auth_middleware(key: str = "X-Token"):
         @wraps(func)
         async def wrapper(self, request: "Request", *args, **kwargs):
             token = request.headers.get(key)
-            toolkit.verify_token(token)
+            toolset.verify_token(token)
             return await func(self, request, *args, **kwargs)
         return wrapper
     return decorator
