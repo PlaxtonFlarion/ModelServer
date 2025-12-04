@@ -48,15 +48,12 @@ image = modal.Image.debian_slim(
     remote_path="/root",
     ignore=["**/.venv", "**/venv"]
 )
-
 secret = modal.Secret.from_name("SHARED_SECRET")
-volume = modal.Volume.from_name("model-cache")
 
 
 @app.cls(
     image=image,
     # gpu="A10G",
-    volumes={"/root/models": modal.Volume.from_name("model-cache")},     # 🔥 把模型目录持久挂载到Volume
     secrets=[secret],
     memory=8192,
     max_containers=2,
