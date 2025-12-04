@@ -117,3 +117,12 @@ tensorflow-io-gcs-filesystem   ==0.31.0     ; sys_platform == "win32"
 tensorflow-macos               ==2.14.0     ; sys_platform == "darwin"
 tensorflow-metal               ==1.1.0      ; sys_platform == "darwin"
 tensorflow-io-gcs-filesystem   ==0.37.1     ; sys_platform == "darwin"
+
+
+# ================================
+# Notes: Embedding 生成（轻量可本地/Modal部署）
+# ================================
+sentence-transformers          ==5.1.2            # BGE模型推理核心库
+transformers                   ==4.57.3           # HF推理框架，用于加载模型
+accelerate                     ==1.12.0           # 推理加速优化（CPU/GPU自动选择）
+tokenizers                     ==0.22.1           # 高效分词，若有fork警告可设TOKENIZERS_PARALLELISM=false

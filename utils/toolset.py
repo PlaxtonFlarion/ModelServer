@@ -1,11 +1,12 @@
-#  _____           _ _    _ _
-# |_   _|__   ___ | | | _(_) |_
-#   | |/ _ \ / _ \| | |/ / | __|
-#   | | (_) | (_) | |   <| | |_
-#   |_|\___/ \___/|_|_|\_\_|\__|
+#  _____           _          _
+# |_   _|__   ___ | |___  ___| |_
+#   | |/ _ \ / _ \| / __|/ _ \ __|
+#   | | (_) | (_) | \__ \  __/ |_
+#   |_|\___/ \___/|_|___/\___|\__|
 #
 
 import os
+import sys
 import time
 import hmac
 import base64
@@ -13,6 +14,12 @@ import typing
 import hashlib
 from loguru import logger
 from fastapi.responses import JSONResponse
+from utils import const
+
+
+def init_logger() -> None:
+    logger.remove()
+    logger.add(sys.stdout, level=const.SHOW_LEVEL, format=const.PRINT_FORMAT)
 
 
 def judge_channel(shape: tuple[int, ...]) -> int:

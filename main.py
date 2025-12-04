@@ -19,6 +19,9 @@ from fastapi.responses import (
     JSONResponse, StreamingResponse
 )
 from starlette.datastructures import FormData
+from sentence_transformers import (
+    SentenceTransformer, CrossEncoder
+)
 from services.sequential.classifier.keras_classifier import KerasStruct
 from services.sequential.cutter.cut_range import VideoCutRange
 from services.sequential.video import (
@@ -27,14 +30,12 @@ from services.sequential.video import (
 from middlewares.auth import auth_middleware
 from middlewares.exception import exception_middleware
 from schema.meta import FrameMeta
-from common import (
-    craft, toolkit
-)
+from utils import toolset
 
 
 app = modal.App("inference")
 
-craft.init_logger()
+toolset.init_logger()
 
 image = modal.Image.debian_slim(
     python_version="3.11"
@@ -48,14 +49,16 @@ image = modal.Image.debian_slim(
     ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
+volume = modal.Volume.from_name("model-cache")
 
 
 @app.cls(
     image=image,
     gpu="A10G",
+    volumes={"/root/models": volume},     # 🔥 把模型目录持久挂载到Volume
     secrets=[secret],
-    memory=16384,
-    max_containers=3,
+    memory=8192,
+    max_containers=2,
     scaledown_window=300
 )
 class InferenceService(object):
@@ -64,18 +67,29 @@ class InferenceService(object):
     kf: typing.Optional["KerasStruct"] = None
     kc: typing.Optional["KerasStruct"] = None
 
+    embedder: typing.Optional["SentenceTransformer"] = None
+    reranker: typing.Optional["CrossEncoder"]        = None
+
     @modal.enter()
     def startup(self):
         """预热"""
         logger.info("KF model loading ...")
         self.kf = KerasStruct()
-        self.kf.load_model("/root/models/Keras_Gray_W256_H256")
+        self.kf.load_model("/root/models/sequence/Keras_Gray_W256_H256")
         logger.info("✅ KF model loaded")
 
         logger.info("KC model loading ...")
         self.kc = KerasStruct()
-        self.kc.load_model("/root/models/Keras_Hued_W256_H256")
+        self.kc.load_model("/root/models/sequence/Keras_Hued_W256_H256")
         logger.info("✅ KC model loaded")
+
+        logger.info("BGE embedding model loading ...")
+        self.embedder = SentenceTransformer("/root/models/bge_base")
+        logger.info("🔥 BGE embedding model loaded")
+
+        logger.info("Cross Encoder model loading ...")
+        self.reranker = CrossEncoder("/root/models/cross_encoder")
+        logger.info("🔥 Cross Encoder model loaded")
 
     @modal.method(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict):
@@ -122,9 +136,9 @@ class InferenceService(object):
                 for cr in meta.valid_range
             ]
 
-            frame_channel = toolkit.judge_channel(
+            frame_channel = toolset.judge_channel(
                 meta.frame_shape
-            ) or toolkit.judge_channel(video.frame_detail()[-1])
+            ) or toolset.judge_channel(video.frame_detail()[-1])
             logger.info(f"Frame channel: {frame_channel}")
 
             final         = self.kc if frame_channel != 1 else self.kf
@@ -204,6 +218,93 @@ class InferenceService(object):
 
         logger.info(content)
         return JSONResponse(content=content, status_code=200)
+
+    @modal.fastapi_endpoint(method="POST")
+    @exception_middleware
+    @auth_middleware("X-Token")
+    async def embedding(self, request: "Request"):
+        """
+        批量Embedding接口（函数名不变，兼容单输入/批量输入）
+
+        支持两种参数：
+        1) { "text": "立即支付 按钮" }
+        2) { "texts": ["立即支付", "继续支付", ...] }
+
+        返回：
+        {
+            "vectors":[[...],[...]],
+            "count":N,
+            "dim":768,
+            "model":"bge-base"
+        }
+        """
+
+        body = await request.json()
+
+        # 兼容单文本 → 自动转列表
+        if "text" in body:
+            texts = [body["text"]]
+        else:
+            texts = body.get("texts", [])
+
+        if not texts or not isinstance(texts, list):
+            return JSONResponse(content={"error": "text or texts required"}, status_code=400)
+
+        # 🔥 批量 embedding（GPU/CPU向量化）
+        embeddings = self.embedder.encode(
+            texts, batch_size=16, convert_to_numpy=True
+        )
+
+        # 归一化 → 更适合向量检索
+        embeddings = embeddings / (numpy.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
+
+        return JSONResponse({
+            "vectors" : embeddings.astype("float32").tolist(),
+            "count"   : len(embeddings),
+            "dim"     : embeddings.shape[1],
+            "model"   : "bge-base"
+        })
+
+    @modal.fastapi_endpoint(method="POST")
+    @exception_middleware
+    @auth_middleware("X-Token")
+    async def rerank(self, request: "Request"):
+        """
+        Cross-Encoder 重排接口
+
+        请求 JSON:
+        {
+          "query": "立即支付 按钮",
+          "candidates": [
+            "继续支付 按钮",
+            "去结算 按钮",
+            "立即支付 按钮"
+          ]
+        }
+
+        响应 JSON:
+        {
+          "scores": [0.12, 0.34, 0.98],
+          "count": 3
+        }
+        """
+
+        body       = await request.json()
+        query      = body.get("query")
+        candidates = body.get("candidates")
+
+        if not query or not isinstance(candidates, list) or not candidates:
+            return JSONResponse(
+                content={"error": "query and candidates (list) are required"}, status_code=400,
+            )
+
+        candidate_pairs = [[query, t] for t in candidates]
+        rerank_scores   = self.reranker.predict(candidate_pairs)
+
+        scores = [float(s) for s in rerank_scores]
+        return JSONResponse(
+            content={"scores": scores, "count": len(scores)}, status_code=200
+        )
 
 
 if __name__ == "__main__":
