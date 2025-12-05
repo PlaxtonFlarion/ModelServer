@@ -45,7 +45,7 @@ INFERENCE_DEPENDENCIES = [
     "starlette==0.37.2",
     "pydantic==2.11.4",
     "uvicorn==0.29.0",
-    "httpx==0.27.8",
+    "httpx==0.27.0",
     "watchfiles==1.1.0",
     "shellingham==1.5.4",
     "typer==0.16.0",

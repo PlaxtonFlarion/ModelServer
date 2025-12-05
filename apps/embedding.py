@@ -61,7 +61,7 @@ class EmbeddingService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def embedding(self, request: "Request") -> "JSONResponse":
+    async def tensor(self, request: "Request") -> "JSONResponse":
         logger.info(f"Request: {request.method} {request.url}")
 
         body = await request.json()
