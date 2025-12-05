@@ -26,7 +26,9 @@ from services.sequential.video import (
 from middlewares.auth import auth_middleware
 from middlewares.exception import exception_middleware
 from schemas.meta import FrameMeta
-from utils import toolset
+from utils import (
+    const, toolset
+)
 
 
 app = modal.App("inference")
@@ -35,12 +37,12 @@ toolset.init_logger()
 
 image = modal.Image.debian_slim(
     "3.11"
-).pip_install_from_requirements(
-    "requirements.txt"
+).pip_install(
+    const.INFERENCE_DEPENDENCIES
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
-    "../models", "/root/models", ignore=["**/.venv", "**/venv"]
+    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -59,7 +61,7 @@ class InferenceService(object):
     kc: typing.Optional["KerasStruct"] = None
 
     @modal.enter()
-    def startup(self):
+    def startup(self) -> None:
         logger.info("KF model loading ...")
         self.kf = KerasStruct()
         self.kf.load_model("/root/models/sequence/Keras_Gray_W256_H256")
@@ -71,7 +73,7 @@ class InferenceService(object):
         logger.info("✅ KC model loaded")
 
     @modal.method(is_generator=True)
-    def classify_stream(self, file_bytes: bytes, meta_dict: dict):
+    def classify_stream(self, file_bytes: bytes, meta_dict: dict) -> typing.Generator[str, None, None]:
         try:
             logger.info(f"========== Overflow Begin ==========")
             meta = FrameMeta(**meta_dict)
@@ -146,7 +148,7 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def predict(self, request: "Request"):
+    async def predict(self, request: "Request") -> "StreamingResponse":
         logger.info(f"Request: {request.method} {request.url}")
 
         form: "Form"             = await request.form()
@@ -164,7 +166,7 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="GET")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def service(self, request: "Request"):
+    async def service(self, request: "Request") -> "JSONResponse":
         logger.info(f"Request: {request.method} {request.url}")
 
         faint_model_dict = {
@@ -197,16 +199,5 @@ class InferenceService(object):
 if __name__ == "__main__":
     # Notes: ==== https://modal.com/ ====
     # modal run main.py
-    # modal deploy main.py
-    # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-    # ==== Volume ====
-    # modal volume create model-cache
-    # modal volume delete model-cache
-    # modal volume list
-    # modal volume put model-cache ./models/bge_base /root/models/bge_base
-    # modal volume put model-cache ./models/cross_encoder /root/models/cross_encoder
-    # modal volume put model-cache ./models/sequence/Keras_Gray_W256_H256 /root/models/sequence/Keras_Gray_W256_H256
-    # modal volume put model-cache ./models/sequence/Keras_Hued_W256_H256 /root/models/sequence/Keras_Hued_W256_H256
-
+    # modal deploy apps/inference.py
     pass

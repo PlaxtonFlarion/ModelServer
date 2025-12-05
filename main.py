@@ -13,12 +13,11 @@ import numpy
 import typing
 from loguru import logger
 from fastapi import (
-    UploadFile, Request
+    UploadFile, Request, Form
 )
 from fastapi.responses import (
     JSONResponse, StreamingResponse
 )
-from starlette.datastructures import FormData
 from sentence_transformers import (
     SentenceTransformer, CrossEncoder
 )
@@ -44,7 +43,7 @@ image = modal.Image.debian_slim(
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
-    "./models", "/root/models", ignore=["**/.venv", "**/venv"]
+    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -67,7 +66,6 @@ class InferenceService(object):
 
     @modal.enter()
     def startup(self):
-        """预热"""
         logger.info("KF model loading ...")
         self.kf = KerasStruct()
         self.kf.load_model("/root/models/sequence/Keras_Gray_W256_H256")
@@ -87,8 +85,7 @@ class InferenceService(object):
         logger.info("🔥 Cross Encoder model loaded")
 
     @modal.method(is_generator=True)
-    def classify_stream(self, file_bytes: bytes, meta_dict: dict):
-        """推理"""
+    def classify_stream(self, file_bytes: bytes, meta_dict: dict) -> typing.Generator[str, None, None]:
         try:
             logger.info(f"========== Overflow Begin ==========")
             meta = FrameMeta(**meta_dict)
@@ -163,12 +160,10 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def predict(self, request: "Request"):
-        """推理接口"""
-
+    async def predict(self, request: "Request") -> "StreamingResponse":
         logger.info(f"Request: {request.method} {request.url}")
 
-        form: "FormData"         = await request.form()
+        form: "Form"             = await request.form()
         frame_meta: str          = form["frame_meta"]
         frame_file: "UploadFile" = form["frame_file"]
 
@@ -183,9 +178,7 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="GET")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def service(self, request: "Request"):
-        """心跳接口"""
-
+    async def service(self, request: "Request") -> "JSONResponse":
         logger.info(f"Request: {request.method} {request.url}")
 
         faint_model_dict = {
@@ -217,69 +210,41 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def embedding(self, request: "Request"):
-        """
-        批量Embedding接口（兼容单输入/批量输入）
-
-        支持两种参数：
-        1) { "text": "立即支付 按钮" }
-        2) { "texts": ["立即支付", "继续支付", ...] }
-
-        返回：
-        {
-            "vectors":[[...],[...]],
-            "count":N,
-            "dim":768,
-            "model":"bge-base"
-        }
-        """
+    async def embedding(self, request: "Request") -> "JSONResponse":
+        logger.info(f"Request: {request.method} {request.url}")
 
         body = await request.json()
+        text = [body["text"]] if "text" in body else body.get("texts", [])
 
-        # 兼容单文本 → 自动转列表
-        texts = [body["text"]] if "text" in body else body.get("texts", [])
-
-        if not texts or not isinstance(texts, list):
+        if not text or not isinstance(text, list):
             return JSONResponse(content={"error": "text or texts required"}, status_code=400)
 
-        # 🔥 批量 embedding（GPU/CPU向量化）
-        embeddings = self.embedder.encode(
-            texts, batch_size=16, convert_to_numpy=True
+        # 🔥 Notes: 批量 embedding（GPU/CPU向量化）
+        embeds = self.embedder.encode(
+            text, batch_size=16, convert_to_numpy=True
         )
+        for embed in embeds:
+            logger.info(f"Embed: {embed}")
 
-        # 归一化 → 更适合向量检索
-        embeddings = embeddings / (numpy.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-8)
+        # 🔥 Notes: 归一化 → 更适合向量检索
+        embeds = embeds / (numpy.linalg.norm(embeds, axis=1, keepdims=True) + 1e-8)
+        logger.info(f"Normalization: {embeds}")
 
-        return JSONResponse({
-            "vectors" : embeddings.astype("float32").tolist(),
-            "count"   : len(embeddings),
-            "dim"     : embeddings.shape[1],
-            "model"   : "BAAI/bge-base-en-v1.5"
-        })
+        resp_body = {
+            "vectors" : embeds.astype("float32").tolist(),
+            "count"   : len(embeds),
+            "dim"     : embeds.shape[1],
+            "model"   : "bge-base-en-v1.5"
+        }
+        logger.info(f"Response body: {resp_body}")
+
+        return JSONResponse(content=resp_body, status_code=200)
 
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def rerank(self, request: "Request"):
-        """
-        Cross-Encoder 重排接口
-
-        请求 JSON:
-        {
-          "query": "立即支付 按钮",
-          "candidate": [
-            "继续支付 按钮",
-            "去结算 按钮",
-            "立即支付 按钮"
-          ]
-        }
-
-        响应 JSON:
-        {
-          "scores": [0.12, 0.34, 0.98],
-          "count": 3
-        }
-        """
+    async def rerank(self, request: "Request") -> "JSONResponse":
+        logger.info(f"Request: {request.method} {request.url}")
 
         body      = await request.json()
         query     = body.get("query")
@@ -287,15 +252,20 @@ class InferenceService(object):
 
         if not query or not isinstance(candidate, list) or not candidate:
             return JSONResponse(
-                content={"error": "query and candidates (list) are required"}, status_code=400,
+                content={"error": "query and candidate (list) are required"}, status_code=400,
             )
 
         candidate_pairs = [[query, t] for t in candidate]
         rerank_scores   = self.reranker.predict(candidate_pairs)
 
         scores = [float(s) for s in rerank_scores]
+        logger.info(f"Rerank scores: {scores}")
+
+        resp_body = {"scores": scores, "count": len(scores)}
+        logger.info(f"Response body: {resp_body}")
+
         return JSONResponse(
-            content={"scores": scores, "count": len(scores)}, status_code=200
+            content=resp_body, status_code=200
         )
 
 
@@ -303,8 +273,8 @@ if __name__ == "__main__":
     # Notes: ==== https://modal.com/ ====
     # modal run main.py
     # modal deploy main.py
-    # modal deploy embedding.py
-    # modal deploy inference.py
+    # modal deploy apps/embedding.py
+    # modal deploy apps/inference.py
     # uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
     # ==== Volume ====

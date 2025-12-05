@@ -17,49 +17,21 @@ from sentence_transformers import (
 )
 from middlewares.auth import auth_middleware
 from middlewares.exception import exception_middleware
-from utils import toolset
+from utils import (
+    const, toolset
+)
 
 
 app = modal.App("embedding")
 
 toolset.init_logger()
 
-DEPENDENCIES = [
-    "fastapi==0.123.9",
-    "starlette==0.50.0",
-    "pydantic==2.12.5",
-    "uvicorn==0.38.0",
-    "httpx==0.28.1",
-    "modal==1.2.4",
-    "synchronicity==0.10.5",
-    "propcache==0.4.1",
-    "grpclib==0.4.8",
-    "sentence-transformers==5.1.2",
-    "transformers==4.57.3",
-    "tokenizers==0.22.1",
-    "numpy==1.26.4",
-    "torch==2.9.1",
-    "scipy==1.11.4",
-    "joblib==1.4.2",
-    "threadpoolctl==3.6.0",
-    "scikit-learn==1.4.2 ",
-    "Pillow==9.5.0",
-    "accelerate==1.12.0",
-    "loguru==0.7.3 "
-]
-
-BGE_BASE      = ["./models/bge_base", "/root/models/bge_base"]
-CROSS_ENCODER = ["./models/cross_encoder", "/root/models/cross_encoder"]
-IGNORE        = ["**/.venv", "**/venv"]
-
 image = modal.Image.debian_slim(
     "3.11"
 ).pip_install(
-    DEPENDENCIES
+    const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
-    *BGE_BASE, ignore=IGNORE
-).add_local_dir(
-    *CROSS_ENCODER, ignore=IGNORE
+    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -102,16 +74,22 @@ class EmbeddingService(object):
         embeds = self.embedder.encode(
             text, batch_size=16, convert_to_numpy=True
         )
+        for embed in embeds:
+            logger.info(f"Embed: {embed}")
 
         # 🔥 Notes: 归一化 → 更适合向量检索
         embeds = embeds / (numpy.linalg.norm(embeds, axis=1, keepdims=True) + 1e-8)
+        logger.info(f"Normalization: {embeds}")
 
-        return JSONResponse({
+        resp_body = {
             "vectors" : embeds.astype("float32").tolist(),
             "count"   : len(embeds),
             "dim"     : embeds.shape[1],
-            "model"   : "BAAI/bge-base-en-v1.5"
-        })
+            "model"   : "bge-base-en-v1.5"
+        }
+        logger.info(f"Response body: {resp_body}")
+
+        return JSONResponse(content=resp_body, status_code=200)
 
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
@@ -125,17 +103,25 @@ class EmbeddingService(object):
 
         if not query or not isinstance(candidate, list) or not candidate:
             return JSONResponse(
-                content={"error": "query and candidates (list) are required"}, status_code=400,
+                content={"error": "query and candidate (list) are required"}, status_code=400,
             )
 
         candidate_pairs = [[query, t] for t in candidate]
         rerank_scores   = self.reranker.predict(candidate_pairs)
 
         scores = [float(s) for s in rerank_scores]
+        logger.info(f"Rerank scores: {scores}")
+
+        resp_body = {"scores": scores, "count": len(scores)}
+        logger.info(f"Response body: {resp_body}")
+
         return JSONResponse(
-            content={"scores": scores, "count": len(scores)}, status_code=200
+            content=resp_body, status_code=200
         )
 
 
 if __name__ == '__main__':
+    # Notes: ==== https://modal.com/ ====
+    # modal run main.py
+    # modal deploy apps/embedding.py
     pass
