@@ -122,6 +122,6 @@ class EmbeddingService(object):
 
 if __name__ == '__main__':
     # Notes: ==== https://modal.com/ ====
-    # modal run main.py
+    # modal run apps/embedding.py
     # modal deploy apps/embedding.py
     pass

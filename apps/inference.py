@@ -198,6 +198,6 @@ class InferenceService(object):
 
 if __name__ == "__main__":
     # Notes: ==== https://modal.com/ ====
-    # modal run main.py
+    # modal run apps/inference.py
     # modal deploy apps/inference.py
     pass
