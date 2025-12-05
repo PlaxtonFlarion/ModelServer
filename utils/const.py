@@ -41,6 +41,8 @@ INFERENCE_DEPENDENCIES = [
     "synchronicity==0.10.5",
     "propcache==0.4.1",
     "grpclib==0.4.8",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
     "fastapi==0.110.2",
     "starlette==0.37.2",
     "pydantic==2.11.4",
