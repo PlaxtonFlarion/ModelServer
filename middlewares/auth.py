@@ -16,7 +16,7 @@ def auth_middleware(key: str = "X-Token"):
     def decorator(func):
 
         @wraps(func)
-        async def wrapper(self, request: "Request", *args, **kwargs):
+        async def wrapper(self, request: Request, *args, **kwargs):
             token = request.headers.get(key)
             toolset.verify_token(token)
             return await func(self, request, *args, **kwargs)

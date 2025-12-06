@@ -19,7 +19,7 @@ def exception_middleware(func):
     """异常中间件"""
 
     @wraps(func)
-    async def wrapper(self, request: "Request", *args, **kwargs):
+    async def wrapper(self, request: Request, *args, **kwargs):
         try:
             return await func(self, request, *args, **kwargs)
         except ClientDisconnect as e:

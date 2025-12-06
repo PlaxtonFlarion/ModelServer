@@ -57,8 +57,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
 )
 class InferenceService(object):
 
-    kf: typing.Optional["KerasStruct"] = None
-    kc: typing.Optional["KerasStruct"] = None
+    kf: typing.Optional[KerasStruct] = None
+    kc: typing.Optional[KerasStruct] = None
 
     @modal.enter()
     def startup(self) -> None:
@@ -148,12 +148,12 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def predict(self, request: "Request") -> "StreamingResponse":
+    async def predict(self, request: Request) -> StreamingResponse:
         logger.info(f"Request: {request.method} {request.url}")
 
-        form: "Form"             = await request.form()
-        frame_meta: str          = form["frame_meta"]
-        frame_file: "UploadFile" = form["frame_file"]
+        form: Form             = await request.form()
+        frame_meta: str        = form["frame_meta"]
+        frame_file: UploadFile = form["frame_file"]
 
         meta_dict  = json.loads(frame_meta)
         file_bytes = await frame_file.read()
@@ -166,7 +166,7 @@ class InferenceService(object):
     @modal.fastapi_endpoint(method="GET")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def service(self, request: "Request") -> "JSONResponse":
+    async def service(self, request: Request) -> JSONResponse:
         logger.info(f"Request: {request.method} {request.url}")
 
         faint_model_dict = {

@@ -45,8 +45,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
 )
 class EmbeddingService(object):
 
-    embedder: typing.Optional["SentenceTransformer"] = None
-    reranker: typing.Optional["CrossEncoder"]        = None
+    embedder: typing.Optional[SentenceTransformer] = None
+    reranker: typing.Optional[CrossEncoder]        = None
 
     @modal.enter()
     def startup(self) -> None:
@@ -61,7 +61,7 @@ class EmbeddingService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def tensor(self, request: "Request") -> "JSONResponse":
+    async def tensor(self, request: Request) -> JSONResponse:
         logger.info(f"Request: {request.method} {request.url}")
 
         body = await request.json()
@@ -96,7 +96,7 @@ class EmbeddingService(object):
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
     @auth_middleware("X-Token")
-    async def rerank(self, request: "Request") -> "JSONResponse":
+    async def rerank(self, request: Request) -> JSONResponse:
         logger.info(f"Request: {request.method} {request.url}")
 
         body      = await request.json()
