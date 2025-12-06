@@ -26,13 +26,6 @@ app = modal.App("apps")
 app.include(embedding_app)
 app.include(inference_app)
 
-@app.function()
-def health():
-    return {
-        "status": "ok",
-        "services": ["embedding_app", "inference_app"]
-    }
-
 """
 部署方式：
     modal deploy main.py
