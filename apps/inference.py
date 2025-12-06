@@ -42,7 +42,7 @@ image = modal.Image.debian_slim(
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
-    ".", "/root", ignore=["**/.venv", "**/venv"]
+    "", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -196,8 +196,5 @@ class InferenceService(object):
         return JSONResponse(content=content, status_code=200)
 
 
-if __name__ == "__main__":
-    # Notes: ==== https://modal.com/ ====
-    # modal run apps/inference.py
-    # modal deploy apps/inference.py
+if __name__ == '__main__':
     pass

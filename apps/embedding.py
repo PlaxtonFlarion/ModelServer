@@ -31,7 +31,7 @@ image = modal.Image.debian_slim(
 ).pip_install(
     const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
-    ".", "/root", ignore=["**/.venv", "**/venv"]
+    "", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -121,7 +121,4 @@ class EmbeddingService(object):
 
 
 if __name__ == '__main__':
-    # Notes: ==== https://modal.com/ ====
-    # modal run apps/embedding.py
-    # modal deploy apps/embedding.py
     pass
