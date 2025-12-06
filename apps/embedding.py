@@ -89,7 +89,9 @@ class EmbeddingService(object):
         }
         logger.info(f"Response body: {resp_body}")
 
-        return JSONResponse(content=resp_body, status_code=200)
+        return JSONResponse(
+            content=resp_body, status_code=200
+        )
 
     @modal.fastapi_endpoint(method="POST")
     @exception_middleware
