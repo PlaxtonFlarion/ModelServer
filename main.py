@@ -19,11 +19,19 @@
 # Notes: ==== 合并部署 ====
 
 import modal
-from routers import register_routers
+from apps.embedding import app as embedding_app
+from apps.inference import app as inference_app
 
 app = modal.App("apps")
+app.include(embedding_app)
+app.include(inference_app)
 
-register_routers(app)
+@app.function()
+def health():
+    return {
+        "status": "ok",
+        "services": ["embedding_app", "inference_app"]
+    }
 
 """
 部署方式：
