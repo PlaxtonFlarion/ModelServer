@@ -53,7 +53,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
     secrets=[secret],
     memory=8192,
     max_containers=2,
-    scaledown_window=300
+    scaledown_window=300,
+    concurrency_limit=2
 )
 class InferenceService(object):
 

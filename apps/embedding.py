@@ -43,7 +43,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
     secrets=[secret],
     memory=4096,
     max_containers=2,
-    scaledown_window=300
+    scaledown_window=300,
+    concurrency_limit=5
 )
 class EmbeddingService(object):
 
@@ -111,7 +112,7 @@ class EmbeddingService(object):
         )
 
         logger.info("✦ 2) 调用嵌入")
-        embeds = self.enc_character.remote(mesh)
+        embeds = self.enc_character.remote_async(mesh)
         embeds = numpy.asarray(embeds, dtype="float32")
 
         logger.info(f"✦ 3) 拆分恢复结构")
