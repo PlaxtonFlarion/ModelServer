@@ -7,12 +7,13 @@
 #
 
 import json
-import modal
 from functools import wraps
 from loguru import logger
 from fastapi import Request
 from fastapi.responses import JSONResponse
-from starlette.requests import ClientDisconnect
+from modal.exception import (
+    ClientClosed, InvalidError
+)
 
 
 def exception_middleware(func):
@@ -22,13 +23,13 @@ def exception_middleware(func):
     async def wrapper(self, request: Request, *args, **kwargs):
         try:
             return await func(self, request, *args, **kwargs)
-        except ClientDisconnect as e:
+        except ClientClosed as e:
             logger.error(e)
             return JSONResponse(content={"error": f"Client disconnected during upload: {str(e)}"}, status_code=499)
         except json.JSONDecodeError as e:
             logger.error(e)
             return JSONResponse(content={"error": f"Invalid JSON payload: {str(e)}"}, status_code=400)
-        except modal.exception.InvalidError as e:
+        except InvalidError as e:
             logger.error(e)
             return JSONResponse(content={"error": f"Modal error: {str(e)}"}, status_code=500)
         except Exception as e:

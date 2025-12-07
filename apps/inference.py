@@ -25,7 +25,7 @@ from services.sequential.video import (
 )
 from middlewares.auth import auth_middleware
 from middlewares.exception import exception_middleware
-from schemas.meta import FrameMeta
+from schemas.cognitive import FrameMeta
 from utils import (
     const, toolset
 )
@@ -149,7 +149,7 @@ class InferenceService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def predict(self, request: Request) -> StreamingResponse:
-        logger.info(f"Request: {request.method} {request.url}")
+        logger.info(f"Request: {request.method} {request.url.path}")
 
         form: Form             = await request.form()
         frame_meta: str        = form["frame_meta"]
@@ -167,7 +167,7 @@ class InferenceService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def service(self, request: Request) -> JSONResponse:
-        logger.info(f"Request: {request.method} {request.url}")
+        logger.info(f"Request: {request.method} {request.url.path}")
 
         faint_model_dict = {
             "fettle" : "Online",

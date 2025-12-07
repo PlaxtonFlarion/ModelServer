@@ -1,8 +1,9 @@
-#  __  __      _
-# |  \/  | ___| |_ __ _
-# | |\/| |/ _ \ __/ _` |
-# | |  | |  __/ || (_| |
-# |_|  |_|\___|\__\__,_|
+#   ____                  _ _   _
+#  / ___|___   __ _ _ __ (_) |_(_)_   _____
+# | |   / _ \ / _` | '_ \| | __| \ \ / / _ \
+# | |__| (_) | (_| | | | | | |_| |\ V /  __/
+#  \____\___/ \__, |_| |_|_|\__|_| \_/ \___|
+#             |___/
 #
 
 import typing
@@ -25,35 +26,6 @@ class FrameMeta(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class TensorRequest(BaseModel):
-    """
-    Tensor Embedding Request
-
-    向量编码 / 相似度计算任务输入数据结构
-
-    Parameters
-    ----------
-    query : Optional[str]
-        需要进行编码的查询文本
-    elements : Optional[List[str]]
-        候选文本集合，可用于向量对比或CrossEncoder重排
-    """
-
-    query: typing.Optional[str] = Field(
-        None,
-        description="要计算向量的输入文本，可为空",
-        examples=["如何做向量召回？"]
-    )
-
-    elements: typing.Optional[list[str]] = Field(
-        None,
-        description="候选文本列表，可为空",
-        examples=["向量召回是什么？", "如何提高搜索效果", "使用CrossEncoder更精准"]
-    )
-
-    model_config = ConfigDict(from_attributes=True)
-
-
 class TensorResponse(BaseModel):
     """
     Tensor Embedding Response
@@ -62,10 +34,10 @@ class TensorResponse(BaseModel):
     """
 
     query: typing.Optional[str] = Field(None, description="原始输入文本")
-    query_vec: typing.Optional[list[list[float]]] = Field(
+    query_vec: typing.Optional[list[float]] = Field(
         None,
         description="query 的向量表达结果 (二维数组)",
-        examples=[[0.104, -0.223, 0.873, ...]]
+        examples=[[0.104, -0.223, 0.873]]
     )
 
     elements: typing.Optional[list[str]] = Field(
@@ -75,16 +47,32 @@ class TensorResponse(BaseModel):
     page_vectors: typing.Optional[list[list[float]]] = Field(
         None,
         description="elements 批量向量结果 (二维数组)",
-        examples=[[0.298, -0.111, 0.552, ...]]
+        examples=[[0.298, -0.111, 0.552]]
     )
 
     count: int = Field(..., description="向量数量", examples=[2])
     dim: int = Field(..., description="向量维度", examples=[768])
     model: str = Field(..., description="使用的 embedding 模型", examples=["bge-m3"])
+    error: typing.Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
 
+class RerankResponse(BaseModel):
+    """
+    Rerank Response
+
+    Returns
+    -------
+    scores : List[float]
+        每个候选文本的相关性得分，数值越大越相关。
+    count : int
+        返回得分数量（候选文本数量）。
+    """
+
+    scores: typing.Optional[list[float]] = Field(..., description="Rerank 打分结果，按输入顺序对应 candidate")
+    count: typing.Optional[int] = Field(..., description="评分条数，等于 candidate 数量")
+    error: typing.Optional[str] = None
 
 
 if __name__ == '__main__':
