@@ -33,7 +33,7 @@ image = modal.Image.debian_slim(
 ).pip_install(
     const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
-    "", "/root", ignore=["**/.venv", "**/venv"]
+    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -156,7 +156,7 @@ class EmbeddingService(object):
         scores = [float(s) for s in rerank_scores]
         logger.info(f"Rerank 最终得分 {scores}")
 
-        logger.info(f"✦ 5) 下发结果 RerankResponse")
+        logger.info(f"Rerank 下发结果 RerankResponse")
         return RerankResponse(
             scores=scores,
             count=len(scores)

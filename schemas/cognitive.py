@@ -74,6 +74,8 @@ class RerankResponse(BaseModel):
     count: typing.Optional[int] = Field(..., description="评分条数，等于 candidate 数量")
     error: typing.Optional[str] = None
 
+    model_config = ConfigDict(from_attributes=True)
+
 
 if __name__ == '__main__':
     pass

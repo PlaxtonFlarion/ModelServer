@@ -42,7 +42,7 @@ image = modal.Image.debian_slim(
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
-    "", "/root", ignore=["**/.venv", "**/venv"]
+    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
