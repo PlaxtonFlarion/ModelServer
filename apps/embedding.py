@@ -42,9 +42,8 @@ secret = modal.Secret.from_name("SHARED_SECRET")
     image=image,
     secrets=[secret],
     memory=4096,
-    max_containers=2,
-    scaledown_window=300,
-    concurrency_limit=5
+    max_containers=5,
+    scaledown_window=300
 )
 class EmbeddingService(object):
 
