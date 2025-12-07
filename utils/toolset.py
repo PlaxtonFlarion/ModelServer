@@ -77,6 +77,7 @@ def desensitize(value: typing.Optional[str]) -> typing.Optional[str]:
         return text[:left] + fill * (length - left - right) + text[-right:]
 
     if value is None: return None
+
     if not (s := value.strip()): return s
 
     # 1) 邮箱脱敏：a***@domain.com
@@ -87,7 +88,7 @@ def desensitize(value: typing.Optional[str]) -> typing.Optional[str]:
 
     # 2) 手机号脱敏：138****1234
     if phone_re.fullmatch(s):
-        return re.sub(r"(\d{3})\d{4}(\d{4})", r"\1****\2", s)
+        return re.sub(pattern=r"(\d{3})\d{4}(\d{4})", repl=r"\1****\2", string=s)
 
     # 3) 长 token / id：abcdefg1234 → abc*****34
     if len(s) >= 8 and re.fullmatch(r"[0-9a-zA-Z]+", s):
