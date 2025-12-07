@@ -111,7 +111,7 @@ class EmbeddingService(object):
         )
 
         logger.info("✦ 2) 调用嵌入")
-        embeds = self.enc_character.remote_async(mesh)
+        embeds = self.enc_character.remote(mesh)
         embeds = numpy.asarray(embeds, dtype="float32")
 
         logger.info(f"✦ 3) 拆分恢复结构")
