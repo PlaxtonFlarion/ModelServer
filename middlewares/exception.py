@@ -12,6 +12,7 @@ import inspect
 import traceback
 from functools import wraps
 from loguru import logger
+from fastapi import HTTPException
 from fastapi.responses import JSONResponse
 from modal.exception import (
     ClientClosed, InvalidError
@@ -34,6 +35,13 @@ def exception_middleware(func):
 
         try:
             return await func(*args, **kwargs)
+
+        except HTTPException as e:
+            logger.error(f"[{trace_id}] HTTPException: {e.detail}")
+            return JSONResponse(
+                status_code=e.status_code,
+                content={"error": str(e.detail), "detail": str(e), "trace_id": trace_id}
+            )
 
         except ClientClosed as e:
             logger.error(f"[{trace_id}] ClientClosed: {e}")
