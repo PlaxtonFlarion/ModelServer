@@ -92,7 +92,7 @@ class EmbeddingService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def tensor(self, request: Request) -> TensorResponse:
-        logger.info(f"Request: {request.method} {request.url.path}")
+        logger.info(f"Request: {request.method} {request.url}")
 
         body     = await request.json()
         query    = body.get("query")
@@ -112,7 +112,7 @@ class EmbeddingService(object):
         )
 
         logger.info("✦ 2) 调用嵌入")
-        embeds = self.enc_character.aio(mesh)
+        embeds = self.enc_character.remote.aio(mesh)
         embeds = numpy.asarray(embeds, dtype="float32")
 
         logger.info(f"✦ 3) 拆分恢复结构")
@@ -138,7 +138,7 @@ class EmbeddingService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def rerank(self, request: Request) -> RerankResponse:
-        logger.info(f"Request: {request.method} {request.url.path}")
+        logger.info(f"Request: {request.method} {request.url}")
 
         body      = await request.json()
         query     = body.get("query")

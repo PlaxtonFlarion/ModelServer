@@ -149,7 +149,7 @@ class InferenceService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def predict(self, request: Request) -> StreamingResponse:
-        logger.info(f"Request: {request.method} {request.url.path}")
+        logger.info(f"Request: {request.method} {request.url}")
 
         form: Form             = await request.form()
         frame_meta: str        = form["frame_meta"]
@@ -167,7 +167,7 @@ class InferenceService(object):
     @exception_middleware
     @auth_middleware("X-Token")
     async def service(self, request: Request) -> JSONResponse:
-        logger.info(f"Request: {request.method} {request.url.path}")
+        logger.info(f"Request: {request.method} {request.url}")
 
         faint_model_dict = {
             "fettle" : "Online",
