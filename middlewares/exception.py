@@ -7,9 +7,11 @@
 #
 
 import json
+import uuid
+import inspect
+import traceback
 from functools import wraps
 from loguru import logger
-from fastapi import Request
 from fastapi.responses import JSONResponse
 from modal.exception import (
     ClientClosed, InvalidError
@@ -20,21 +22,46 @@ def exception_middleware(func):
     """异常中间件"""
 
     @wraps(func)
-    async def wrapper(self, request: Request, *args, **kwargs):
+    async def wrapper(*args, **kwargs):
+        sig = inspect.signature(func)
+        has_self = "self" in sig.parameters
+
+        if "request" in kwargs: request = kwargs["request"]
+        else: request = args[1] if has_self else args[0]
+
+        trace_id = uuid.uuid4().hex[:8]
+        request.state.trace_id = trace_id
+
         try:
-            return await func(self, request, *args, **kwargs)
+            return await func(*args, **kwargs)
+
         except ClientClosed as e:
-            logger.error(e)
-            return JSONResponse(content={"error": f"Client disconnected during upload: {str(e)}"}, status_code=499)
+            logger.error(f"[{trace_id}] ClientClosed: {e}")
+            return JSONResponse(
+                status_code=499,
+                content={"error": "CLIENT_CLOSED", "detail": str(e), "trace_id": trace_id}
+            )
+
         except json.JSONDecodeError as e:
-            logger.error(e)
-            return JSONResponse(content={"error": f"Invalid JSON payload: {str(e)}"}, status_code=400)
+            logger.error(f"[{trace_id}] JSONDecodeError: {e}")
+            return JSONResponse(
+                status_code=400,
+                content={"error": "INVALID_JSON", "detail": str(e), "trace_id": trace_id}
+            )
+
         except InvalidError as e:
-            logger.error(e)
-            return JSONResponse(content={"error": f"Modal error: {str(e)}"}, status_code=500)
+            logger.error(f"[{trace_id}] ModalError: {e}")
+            return JSONResponse(
+                status_code=502,
+                content={"error": "MODAL_CALL_FAILED", "detail": str(e), "trace_id": trace_id}
+            )
+
         except Exception as e:
-            logger.error(e)
-            return JSONResponse(content={"error": f"Unexpected error: {str(e)}"}, status_code=500)
+            logger.error(f"[{trace_id}] Unexpected: {e}\n" + traceback.format_exc())
+            return JSONResponse(
+                status_code=500,
+                content={"error": "INTERNAL_ERROR", "detail": str(e), "trace_id": trace_id}
+            )
 
     return wrapper
 
