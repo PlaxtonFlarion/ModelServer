@@ -9,6 +9,7 @@
 import modal
 import numpy
 import typing
+import asyncio
 from loguru import logger
 from fastapi import Request
 from sentence_transformers import (
@@ -60,16 +61,16 @@ class EmbeddingService(object):
         self.reranker = CrossEncoder("/root/models/cross_encoder")
         logger.info("🔥 Cross Encoder model loaded")
 
-    @modal.method(is_generator=False)
-    def enc_character(self, origin: list[str]) -> numpy.ndarray:
-        if not origin: return numpy.empty((0, 768))
+    @modal.method()
+    async def enc_character(self, origin: list[str]) -> numpy.ndarray:
+        if not origin: return numpy.array([])
 
         try:
             logger.info(f"========== Encode Begin ==========")
 
             # 🔥 批量 embedding（GPU/CPU向量化）
-            embeds = self.embedder.encode(
-                origin, batch_size=16, convert_to_numpy=True
+            embeds = await asyncio.to_thread(
+                self.embedder.encode, origin, batch_size=16, convert_to_numpy=True
             )
 
             # 🔥 归一化 → 更适合向量检索
@@ -82,7 +83,7 @@ class EmbeddingService(object):
             return embeds
 
         except Exception as e:
-            logger.error(e); return numpy.empty((0, 768))
+            logger.error(e); return numpy.array([])
 
         finally:
             logger.info(f"========== Encode Final ==========")
@@ -111,7 +112,7 @@ class EmbeddingService(object):
         )
 
         logger.info("✦ 2) 调用嵌入")
-        embeds = self.enc_character.remote(mesh)
+        embeds = self.enc_character.aio(mesh)
         embeds = numpy.asarray(embeds, dtype="float32")
 
         logger.info(f"✦ 3) 拆分恢复结构")
