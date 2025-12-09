@@ -56,7 +56,7 @@ def exception_middleware(func):
             return JSONResponse(
                 status_code=502,
                 content={
-                    "error"    : "MODAL CALL FAILED",
+                    "error"    : "INVALID ERROR",
                     "details"  : str(e),
                     "type"     : e.__class__.__name__,
                     "trace_id" : trace_id
@@ -83,7 +83,7 @@ def exception_middleware(func):
             )
             return JSONResponse(
                 content={
-                    "error"    : "INTERNAL_ERROR",
+                    "error"    : "INTERNAL ERROR",
                     "details"  : str(e),
                     "type"     : e.__class__.__name__,
                     "trace_id" : trace_id
