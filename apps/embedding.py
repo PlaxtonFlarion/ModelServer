@@ -15,8 +15,8 @@ from fastapi import Request
 from sentence_transformers import (
     SentenceTransformer, CrossEncoder
 )
-from middlewares.auth import auth_middleware
-from middlewares.exception import exception_middleware
+from middlewares.mid_auth import auth_middleware
+from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import (
     TensorResponse, RerankResponse
 )

@@ -23,8 +23,8 @@ from services.sequential.cutter.cut_range import VideoCutRange
 from services.sequential.video import (
     VideoFrame, VideoObject
 )
-from middlewares.auth import auth_middleware
-from middlewares.exception import exception_middleware
+from middlewares.mid_auth import auth_middleware
+from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import FrameMeta
 from utils import (
     const, toolset
