@@ -193,7 +193,7 @@ class InferenceService(object):
         }
 
         logger.info(content)
-        return JSONResponse(content=content, status_code=200)
+        return JSONResponse(content)
 
 
 if __name__ == '__main__':

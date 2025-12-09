@@ -20,6 +20,7 @@ from middlewares.exception import exception_middleware
 from schemas.cognitive import (
     TensorResponse, RerankResponse
 )
+from schemas.errors import BizError
 from utils import (
     const, toolset
 )
@@ -63,8 +64,6 @@ class EmbeddingService(object):
 
     @modal.method()
     async def enc_character(self, origin: list[str]) -> numpy.ndarray:
-        if not origin: return numpy.array([])
-
         try:
             logger.info(f"========== Encode Begin ==========")
 
@@ -100,15 +99,9 @@ class EmbeddingService(object):
 
         logger.info(f"✦ 1) 输入文本融合 (保证顺序 Query → Elements)")
         mesh = ([query] if query else []) + (elements or [])
-        if not mesh: return TensorResponse(
-            query=query,
-            query_vec=numpy.array([]).tolist(),
-            elements=elements,
-            page_vectors=numpy.array([]).tolist(),
-            count=0,
-            dim=0,
-            model="",
-            error="query and elements required"
+
+        if not mesh: raise BizError(
+            status_code=400, detail="query and elements required"
         )
 
         logger.info("✦ 2) 调用嵌入")
@@ -145,10 +138,8 @@ class EmbeddingService(object):
         candidate = body.get("candidate")
 
         if not query or not isinstance(candidate, list) or not candidate:
-            return RerankResponse(
-                scores=None,
-                count=None,
-                error="query and candidate (list) are required"
+            raise BizError(
+                status_code=400, detail="query and candidate (list) are required"
             )
 
         logger.info(f"Rerank 计算逻辑")

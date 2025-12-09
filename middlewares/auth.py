@@ -5,9 +5,9 @@
 # /_/   \_\__,_|\__|_| |_|
 #
 
-import uuid
 from functools import wraps
-from fastapi import HTTPException
+from loguru import logger
+from schemas.errors import AuthorizationError
 from utils import toolset
 
 
@@ -21,20 +21,20 @@ def auth_middleware(key: str = "X-Token"):
             if "request" in kwargs: request = kwargs["request"]
             else: request = args[1] if hasattr(args[0], "__dict__") else args[0]
 
-            trace_id = uuid.uuid4().hex[:8]
-
             if not (token := request.headers.get(key)):
-                raise HTTPException(
-                    status_code=401,
-                    detail={"error": "TOKEN_MISSING", "trace_id": trace_id}
+                logger.error(
+                    f"🚫 Missing credentials — {key}={token}"
+                )
+                raise AuthorizationError(
+                    status_code=401, detail="Missing authentication credentials"
                 )
 
             try:
                 toolset.verify_token(token)
             except Exception as e:
-                raise HTTPException(
-                    status_code=403,
-                    detail={"error": "TOKEN_INVALID", "msg": str(e), "trace_id": trace_id}
+                logger.error(f"❗ Token verification failed, Reason={e}")
+                raise AuthorizationError(
+                    status_code=403, detail="Invalid token"
                 )
 
             return await func(*args, **kwargs)

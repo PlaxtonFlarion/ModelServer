@@ -6,17 +6,16 @@
 #                    |_|
 #
 
-import json
 import uuid
 import inspect
-import traceback
 from functools import wraps
 from loguru import logger
 from fastapi import HTTPException
 from fastapi.responses import JSONResponse
-from modal.exception import (
-    ClientClosed, InvalidError
+from schemas.errors import (
+    AuthorizationError, BizError
 )
+from modal.exception import InvalidError
 
 
 def exception_middleware(func):
@@ -36,39 +35,60 @@ def exception_middleware(func):
         try:
             return await func(*args, **kwargs)
 
-        except HTTPException as e:
-            logger.error(f"[{trace_id}] HTTPException: {e.detail}")
-            return JSONResponse(
-                status_code=e.status_code,
-                content={"error": str(e.detail), "detail": str(e), "trace_id": trace_id}
+        except (AuthorizationError, BizError) as e:
+            logger.error(
+                f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
             )
-
-        except ClientClosed as e:
-            logger.error(f"[{trace_id}] ClientClosed: {e}")
             return JSONResponse(
-                status_code=499,
-                content={"error": "CLIENT_CLOSED", "detail": str(e), "trace_id": trace_id}
-            )
-
-        except json.JSONDecodeError as e:
-            logger.error(f"[{trace_id}] JSONDecodeError: {e}")
-            return JSONResponse(
-                status_code=400,
-                content={"error": "INVALID_JSON", "detail": str(e), "trace_id": trace_id}
+                content={
+                    "error"    : "FATAL",
+                    "details"  : e.detail,
+                    "type"     : e.__class__.__name__,
+                    "trace_id" : trace_id
+                },
+                status_code=e.status_code
             )
 
         except InvalidError as e:
-            logger.error(f"[{trace_id}] ModalError: {e}")
+            logger.error(
+                f"[{trace_id}] ⚠️ {request.method} {request.url.path} → {e}"
+            )
             return JSONResponse(
                 status_code=502,
-                content={"error": "MODAL_CALL_FAILED", "detail": str(e), "trace_id": trace_id}
+                content={
+                    "error"    : "MODAL CALL FAILED",
+                    "details"  : str(e),
+                    "type"     : e.__class__.__name__,
+                    "trace_id" : trace_id
+                }
+            )
+
+        except HTTPException as e:
+            logger.error(
+                f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
+            )
+            return JSONResponse(
+                content={
+                    "error"    : "HTTP EXCEPTION",
+                    "details"  : e.detail,
+                    "type"     : e.__class__.__name__,
+                    "trace_id" : trace_id
+                },
+                status_code=e.status_code
             )
 
         except Exception as e:
-            logger.error(f"[{trace_id}] Unexpected: {e}\n" + traceback.format_exc())
+            logger.error(
+                f"[{trace_id}] ❌ Unhandled Exception: {e}"
+            )
             return JSONResponse(
-                status_code=500,
-                content={"error": "INTERNAL_ERROR", "detail": str(e), "trace_id": trace_id}
+                content={
+                    "error"    : "INTERNAL_ERROR",
+                    "details"  : str(e),
+                    "type"     : e.__class__.__name__,
+                    "trace_id" : trace_id
+                },
+                status_code=500
             )
 
     return wrapper
