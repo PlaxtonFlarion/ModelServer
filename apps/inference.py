@@ -26,7 +26,7 @@ from services.sequential.video import (
 from middlewares.mid_auth import auth_middleware
 from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import FrameMeta
-from images.emb_image import (
+from images.inference_image import (
     image, secret
 )
 from utils import toolset
