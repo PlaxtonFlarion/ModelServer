@@ -30,8 +30,12 @@ from utils import (
     const, toolset
 )
 
+# Notes: https://keras.io/
+# Sequential
 
 app = modal.App("inference")
+src = "/root/models/sequence"
+dst = modal.Volume.from_name("sequence-cache")
 
 toolset.init_logger()
 
@@ -41,8 +45,6 @@ image = modal.Image.debian_slim(
     const.INFERENCE_DEPENDENCIES
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
-).add_local_dir(
-    ".", "/root", ignore=["**/.venv", "**/venv"]
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 
@@ -51,11 +53,12 @@ secret = modal.Secret.from_name("SHARED_SECRET")
     image=image,
     # gpu="A10G",
     secrets=[secret],
+    volumes={src: dst},
     memory=8192,
     max_containers=2,
     scaledown_window=300
 )
-class InferenceService(object):
+class InferenceSV(object):
 
     kf: typing.Optional[KerasStruct] = None
     kc: typing.Optional[KerasStruct] = None
