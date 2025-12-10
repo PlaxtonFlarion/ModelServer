@@ -78,12 +78,12 @@ class EmbeddingEN(object):
             embeds = numpy.asarray(embeds, dtype="float32")
 
             logger.info(f"✦ 3) 拆分恢复结构")
-            query_vec = embeds[0] if query else None
-            page_vectors = embeds[1:] if elements else None
+            query_vec    = embeds[0] if query else numpy.array([])
+            page_vectors = embeds[1:] if elements else numpy.array([])
 
             logger.info(f"✦ 4) 统计")
             count = len(mesh)
-            dim = embeds.shape[-1] if mesh else 0
+            dim   = embeds.shape[-1] if mesh else 0
 
             logger.info(f"✦ 5) 下发结果 TensorResponse")
             return TensorResponse(
