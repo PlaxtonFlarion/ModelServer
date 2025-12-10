@@ -27,7 +27,7 @@ from middlewares.mid_auth import auth_middleware
 from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import FrameMeta
 from images.emb_image import (
-    image, secret, mounts
+    image, secret
 )
 from utils import toolset
 
@@ -36,7 +36,6 @@ from utils import toolset
 
 app = modal.App("inference")
 src = "/root/models/sequence"
-dst = modal.Volume.from_name("sequence-cache")
 
 toolset.init_logger()
 
@@ -45,8 +44,6 @@ toolset.init_logger()
     image=image,
     # gpu="A10G",
     secrets=[secret],
-    mounts=mounts,
-    volumes={src: dst},
     memory=8192,
     max_containers=2,
     scaledown_window=300

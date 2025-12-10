@@ -17,7 +17,7 @@ from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import TensorResponse
 from schemas.errors import BizError
 from images.emb_image import (
-    image, secret, mounts
+    image, secret
 )
 from utils import toolset
 
@@ -26,7 +26,6 @@ from utils import toolset
 
 app = modal.App("embedding-en")
 src = "/root/models/bge_base_en"
-dst = modal.Volume.from_name("bge-en-cache")
 
 toolset.init_logger()
 
@@ -34,8 +33,6 @@ toolset.init_logger()
 @app.cls(
     image=image,
     secrets=[secret],
-    mounts=mounts,
-    volumes={src: dst},
     memory=4096,
     max_containers=5,
     scaledown_window=300

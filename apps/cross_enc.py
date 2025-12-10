@@ -15,7 +15,7 @@ from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import RerankResponse
 from schemas.errors import BizError
 from images.emb_image import (
-    image, secret, mounts
+    image, secret
 )
 from utils import toolset
 
@@ -24,7 +24,6 @@ from utils import toolset
 
 app = modal.App("cross-encoder")
 src = "/root/models/cross_encoder"
-dst = modal.Volume.from_name("cross-enc-cache")
 
 toolset.init_logger()
 
@@ -32,8 +31,6 @@ toolset.init_logger()
 @app.cls(
     image=image,
     secrets=[secret],
-    mounts=mounts,
-    volumes={src: dst},
     memory=4096,
     max_containers=5,
     scaledown_window=300
