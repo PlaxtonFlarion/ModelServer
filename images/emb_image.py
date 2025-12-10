@@ -14,6 +14,14 @@ image = modal.Image.debian_slim(
     const.EMBEDDING_DEPENDENCIES
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
+mounts = [
+    modal.Mount.from_local_dir("apps", remote_path="/root/apps"),
+    modal.Mount.from_local_dir("images", remote_path="/root/images"),
+    modal.Mount.from_local_dir("middlewares", remote_path="/root/middlewares"),
+    modal.Mount.from_local_dir("schemas", remote_path="/root/schemas"),
+    modal.Mount.from_local_dir("services", remote_path="/root/services"),
+    modal.Mount.from_local_dir("utils", remote_path="/root/utils")
+]
 
 
 if __name__ == '__main__':

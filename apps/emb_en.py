@@ -17,7 +17,7 @@ from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import TensorResponse
 from schemas.errors import BizError
 from images.emb_image import (
-    image, secret
+    image, secret, mounts
 )
 from utils import toolset
 
@@ -34,6 +34,7 @@ toolset.init_logger()
 @app.cls(
     image=image,
     secrets=[secret],
+    mounts=mounts,
     volumes={src: dst},
     memory=4096,
     max_containers=5,

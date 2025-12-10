@@ -26,9 +26,10 @@ from services.sequential.video import (
 from middlewares.mid_auth import auth_middleware
 from middlewares.mid_exception import exception_middleware
 from schemas.cognitive import FrameMeta
-from utils import (
-    const, toolset
+from images.emb_image import (
+    image, secret, mounts
 )
+from utils import toolset
 
 # Notes: https://keras.io/
 # Sequential
@@ -39,20 +40,12 @@ dst = modal.Volume.from_name("sequence-cache")
 
 toolset.init_logger()
 
-image = modal.Image.debian_slim(
-    "3.11"
-).pip_install(
-    const.INFERENCE_DEPENDENCIES
-).apt_install(
-    "libgl1", "libglib2.0-0", "ffmpeg"
-)
-secret = modal.Secret.from_name("SHARED_SECRET")
-
 
 @app.cls(
     image=image,
     # gpu="A10G",
     secrets=[secret],
+    mounts=mounts,
     volumes={src: dst},
     memory=8192,
     max_containers=2,
