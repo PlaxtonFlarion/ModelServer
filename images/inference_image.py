@@ -20,7 +20,7 @@ image = Image.debian_slim(
 ).add_local_dir(
     ".", "/root", ignore=["models/", "venv/", ".venv/"]
 ).add_local_dir(
-    "/models/sequence", "/root/models/sequence"
+    "models/sequence", "/root/models/sequence"
 )
 secret = Secret.from_name("SHARED_SECRET")
 
