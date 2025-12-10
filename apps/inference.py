@@ -68,7 +68,7 @@ class InferenceSV(object):
         self.kc.load_model("/root/models/sequence/Keras_Hued_W256_H256")
         logger.info("✅ KC model loaded")
 
-    @modal.method(is_generator=True)
+    @app.function(is_generator=True)
     def classify_stream(self, file_bytes: bytes, meta_dict: dict) -> typing.Generator[str, None, None]:
         try:
             logger.info(f"========== Overflow Begin ==========")
