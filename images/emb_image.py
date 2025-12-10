@@ -16,11 +16,11 @@ image = Image.debian_slim(
     const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
     ".", "/root", ignore=["*.venv", "*venv", "*models"]
-).add_local_file(
+).add_local_dir(
     "models/bge_base_en", "/root/models/bge_base_en"
-).add_local_file(
+).add_local_dir(
     "models/bge_base_zh", "/root/models/bge_base_zh"
-).add_local_file(
+).add_local_dir(
     "models/cross_encoder", "/root/models/cross_encoder"
 )
 secret = Secret.from_name("SHARED_SECRET")

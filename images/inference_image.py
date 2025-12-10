@@ -19,7 +19,7 @@ image = Image.debian_slim(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
     ".", "/root", ignore=["*.venv", "*venv", "*models"]
-).add_local_file(
+).add_local_dir(
     "/models/sequence", "/root/models/sequence"
 )
 secret = Secret.from_name("SHARED_SECRET")
