@@ -27,7 +27,7 @@ inference_router = APIRouter(tags=["Inference"])
     operation_id="api_predict"
 )
 async def api_predict(request: Request) -> StreamingResponse:
-    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"**> {request.method} {request.url}")
 
     form: Form             = await request.form()
     frame_meta: str        = form["frame_meta"]

@@ -23,8 +23,7 @@ rerank_router = APIRouter(tags=["Rerank"])
     operation_id="api_rerank"
 )
 async def api_rerank(request: Request) -> RerankResponse:
-    logger.info(f"<Rerank Begin>")
-    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"**> {request.method} {request.url}")
 
     f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="CrossENC")
 
@@ -44,7 +43,7 @@ async def api_rerank(request: Request) -> RerankResponse:
         return RerankResponse(**resp)
 
     finally:
-        logger.info(f"<Rerank Final>")
+        logger.info(f"**> {('=' * 12)}")
 
 
 if __name__ == '__main__':

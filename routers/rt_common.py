@@ -24,26 +24,30 @@ common_router = APIRouter(tags=["Common"])
     operation_id="api_service"
 )
 async def api_service(request: Request) -> JSONResponse:
-    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"**> {request.method} {request.url}")
 
     tasks = [
         "CrossENC", "EmbeddingEN", "EmbeddingZH", "InferenceColor", "InferenceFaint"
     ]
 
-    for resp in await asyncio.gather(
-        *(modal.Cls.from_name(app_name=const.GROUP_FUNC, name=name)()
-          .heartbeat.remote.aio() for name in tasks)
-    ):
-        logger.info(f"HeartBeat: {resp}")
+    try:
+        for resp in await asyncio.gather(
+            *(modal.Cls.from_name(app_name=const.GROUP_FUNC, name=name)()
+              .heartbeat.remote.aio() for name in tasks)
+        ):
+            logger.info(f"HeartBeat: {resp}")
 
-    content = {
-        "status"    : "OK",
-        "message"   : {},
-        "timestamp" : int(time.time()),
-    }
+        content = {
+            "status"    : "OK",
+            "message"   : {},
+            "timestamp" : int(time.time()),
+        }
+        logger.info(content)
 
-    logger.info(content)
-    return JSONResponse(content)
+        return JSONResponse(content)
+
+    finally:
+        logger.info(f"**> {('=' * 12)}")
 
 
 if __name__ == '__main__':

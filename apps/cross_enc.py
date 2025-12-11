@@ -26,7 +26,7 @@ toolset.init_logger()
 @app.cls(
     image=image,
     secrets=[secret],
-    memory=4096,
+    memory=2048,
     max_containers=5,
     scaledown_window=300
 )

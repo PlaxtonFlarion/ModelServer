@@ -56,8 +56,9 @@ class InferenceColor(object):
 
     @modal.method(is_generator=True)
     def classify_stream(self, meta_dict: dict, file_bytes: bytes) -> typing.Generator[str, None, None]:
+        logger.info(f"========== Overflow Begin ==========")
+
         try:
-            logger.info(f"<Overflow Begin>")
             meta     = FrameMeta(**meta_dict)
             npz_data = numpy.load(io.BytesIO(file_bytes), allow_pickle=False)
 
@@ -112,7 +113,7 @@ class InferenceColor(object):
             return logger.error(e)
 
         finally:
-            logger.info(f"<Overflow Final>")
+            logger.info(f"========== Overflow Final ==========")
 
 
 if __name__ == '__main__':

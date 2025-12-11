@@ -24,8 +24,7 @@ embedding_router = APIRouter(tags=["Embedding"])
     operation_id="api_tensor_en"
 )
 async def api_tensor_en(request: Request) -> TensorResponse:
-    logger.info(f"<Tensor Begin>")
-    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"**> {request.method} {request.url}")
 
     f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="EmbeddingEN")
 
@@ -43,7 +42,7 @@ async def api_tensor_en(request: Request) -> TensorResponse:
         return TensorResponse(**resp)
 
     finally:
-        logger.info(f"<Tensor Final>")
+        logger.info(f"**> {('=' * 12)}")
 
 
 @embedding_router.post(
@@ -52,8 +51,7 @@ async def api_tensor_en(request: Request) -> TensorResponse:
     operation_id="api_tensor_zh"
 )
 async def api_tensor_zh(request: Request) -> TensorResponse:
-    logger.info(f"<Tensor Begin>")
-    logger.info(f"Request: {request.method} {request.url}")
+    logger.info(f"**> {request.method} {request.url}")
 
     f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="EmbeddingZH")
 
@@ -71,7 +69,7 @@ async def api_tensor_zh(request: Request) -> TensorResponse:
         return TensorResponse(**resp)
 
     finally:
-        logger.info(f"<Tensor Final>")
+        logger.info(f"**> {('=' * 12)}")
 
 
 if __name__ == '__main__':
