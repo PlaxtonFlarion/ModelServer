@@ -32,7 +32,7 @@ async def api_service(request: Request) -> JSONResponse:
 
     for resp in await asyncio.gather(
         *(modal.Cls.from_name(app_name=const.GROUP_FUNC, name=name)()
-          .heartbeat.remote_aio() for name in tasks)
+          .heartbeat.remote.aio() for name in tasks)
     ):
         logger.info(f"HeartBeat: {resp}")
 
