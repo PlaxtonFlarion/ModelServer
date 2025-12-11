@@ -1,3 +1,11 @@
+#     _
+#    / \   _ __  _ __
+#   / _ \ | '_ \| '_ \
+#  / ___ \| |_) | |_) |
+# /_/   \_\ .__/| .__/
+#         |_|   |_|
+#
+
 import modal
 
 from apps.cross_enc   import app as cross_enc_app
