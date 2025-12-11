@@ -67,7 +67,7 @@ async def api_tensor_zh(request: Request) -> TensorResponse:
             status_code=400, detail="query and elements required"
         )
 
-        resp = await f().remote.aio(query, elements, mesh)
+        resp = await f().tensor.remote.aio(query, elements, mesh)
         return TensorResponse(**resp)
 
     finally:
