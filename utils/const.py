@@ -5,18 +5,43 @@
 #   \____\___/|_| |_|___/\__|
 #
 
-# ==== Notes: 日志格式 ====
+# ==== Notes: 日志 ====
 SHOW_LEVEL   = r"INFO"
 PRINT_FORMAT = r"<bold><level>{level}</level></bold>: <bold><cyan>{message}</cyan></bold>"
 WRITE_FORMAT = r"{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 
-# ==== Notes: embedding 依赖 ====
+# ==== Notes: 鉴权 ====
+AUTH_KEY   = r"X-Token"
+
+# ==== Notes: 分组 ====
+GROUP_MAIN = r"apps"
+GROUP_FUNC = r"functions"
+
+# ==== Notes: 依赖 ====
+BASE_DEPENDENCIES = [
+    "modal==1.2.4",
+    "synchronicity==0.10.5",
+    "propcache==0.4.1",
+    "grpclib==0.4.8",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
+    "fastapi==0.123.9",
+    "starlette==0.50.0",
+    "pydantic==2.12.5",
+    "uvicorn==0.38.0",
+    "httpx==0.28.1",
+    "loguru==0.7.3"
+]
+
+# ==== Notes: 依赖 ====
 EMBEDDING_DEPENDENCIES = [
     "modal==1.2.4",
     "synchronicity==0.10.5",
     "propcache==0.4.1",
     "grpclib==0.4.8",
     "fastapi==0.123.9",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
     "starlette==0.50.0",
     "pydantic==2.12.5",
     "uvicorn==0.38.0",
@@ -35,7 +60,7 @@ EMBEDDING_DEPENDENCIES = [
     "loguru==0.7.3 "
 ]
 
-# ==== Notes: inference 依赖 ====
+# ==== Notes: 依赖 ====
 INFERENCE_DEPENDENCIES = [
     "modal==1.2.4",
     "synchronicity==0.10.5",

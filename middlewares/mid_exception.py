@@ -7,10 +7,11 @@
 #
 
 import uuid
-import inspect
-from functools import wraps
+import typing
 from loguru import logger
-from fastapi import HTTPException
+from fastapi import (
+    Request, HTTPException
+)
 from fastapi.responses import JSONResponse
 from schemas.errors import (
     AuthorizationError, BizError
@@ -18,80 +19,73 @@ from schemas.errors import (
 from modal.exception import InvalidError
 
 
-def exception_middleware(func):
+async def exception_middleware(
+    request: Request,
+    call_next: typing.Callable
+) -> typing.Any:
     """异常中间件"""
 
-    @wraps(func)
-    async def wrapper(*args, **kwargs):
-        sig = inspect.signature(func)
-        has_self = "self" in sig.parameters
+    trace_id = getattr(request.state, "trace_id", str(uuid.uuid4()))
+    request.state.trace_id = trace_id
 
-        if "request" in kwargs: request = kwargs["request"]
-        else: request = args[1] if has_self else args[0]
+    try:
+        return await call_next(request)
 
-        trace_id = uuid.uuid4().hex[:8]
-        request.state.trace_id = trace_id
+    except (AuthorizationError, BizError) as e:
+        logger.error(
+            f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
+        )
+        return JSONResponse(
+            content={
+                "error"    : "FATAL",
+                "details"  : e.detail,
+                "type"     : e.__class__.__name__,
+                "trace_id" : trace_id
+            },
+            status_code=e.status_code
+        )
 
-        try:
-            return await func(*args, **kwargs)
+    except InvalidError as e:
+        logger.error(
+            f"[{trace_id}] ⚠️ {request.method} {request.url.path} → {e}"
+        )
+        return JSONResponse(
+            status_code=502,
+            content={
+                "error"    : "INVALID ERROR",
+                "details"  : str(e),
+                "type"     : e.__class__.__name__,
+                "trace_id" : trace_id
+            }
+        )
 
-        except (AuthorizationError, BizError) as e:
-            logger.error(
-                f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
-            )
-            return JSONResponse(
-                content={
-                    "error"    : "FATAL",
-                    "details"  : e.detail,
-                    "type"     : e.__class__.__name__,
-                    "trace_id" : trace_id
-                },
-                status_code=e.status_code
-            )
+    except HTTPException as e:
+        logger.error(
+            f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
+        )
+        return JSONResponse(
+            content={
+                "error"    : "HTTP EXCEPTION",
+                "details"  : e.detail,
+                "type"     : e.__class__.__name__,
+                "trace_id" : trace_id
+            },
+            status_code=e.status_code
+        )
 
-        except InvalidError as e:
-            logger.error(
-                f"[{trace_id}] ⚠️ {request.method} {request.url.path} → {e}"
-            )
-            return JSONResponse(
-                status_code=502,
-                content={
-                    "error"    : "INVALID ERROR",
-                    "details"  : str(e),
-                    "type"     : e.__class__.__name__,
-                    "trace_id" : trace_id
-                }
-            )
-
-        except HTTPException as e:
-            logger.error(
-                f"[{trace_id}] ⚠️ {e.status_code} {request.method} {request.url.path} → {e.detail}"
-            )
-            return JSONResponse(
-                content={
-                    "error"    : "HTTP EXCEPTION",
-                    "details"  : e.detail,
-                    "type"     : e.__class__.__name__,
-                    "trace_id" : trace_id
-                },
-                status_code=e.status_code
-            )
-
-        except Exception as e:
-            logger.error(
-                f"[{trace_id}] ❌ Unhandled Exception: {e}"
-            )
-            return JSONResponse(
-                content={
-                    "error"    : "INTERNAL ERROR",
-                    "details"  : str(e),
-                    "type"     : e.__class__.__name__,
-                    "trace_id" : trace_id
-                },
-                status_code=500
-            )
-
-    return wrapper
+    except Exception as e:
+        logger.error(
+            f"[{trace_id}] ❌ Unhandled Exception: {e}"
+        )
+        return JSONResponse(
+            content={
+                "error"    : "INTERNAL ERROR",
+                "details"  : str(e),
+                "type"     : e.__class__.__name__,
+                "trace_id" : trace_id
+            },
+            status_code=500
+        )
 
 
 if __name__ == '__main__':

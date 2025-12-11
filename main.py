@@ -6,36 +6,50 @@
 #
 # Notes: ==== https://modal.com/ ====
 
-"""
-统一入口 — 支持 modal deploy main.py 一键部署所有服务
-
-注意：
-  - 只负责 import，不包含业务逻辑
-  - 每个 service 文件中必须自带相同的 modal.App("xxx")
-  - deploy 时所有相关 cls 都会在 Modal 上创建/更新
-"""
-
-
-# Notes: ==== 合并部署 ====
-
 import modal
-from apps.cross_enc import app as cross_enc_app
-from apps.emb_en    import app as embedding_en
-from apps.emb_zh    import app as embedding_zh
-from apps.inference import app as inference_app
 
-app = modal.App("apps")
-app.include(cross_enc_app  )
-app.include(embedding_en   )
-app.include(embedding_zh   )
-app.include(inference_app  )
+from fastapi import FastAPI
+
+from middlewares import register_middlewares
+from routers     import register_routers
+
+from images.base_image import (
+    image, secret
+)
+from utils import (
+    const, toolset
+)
+
+app = modal.App(const.GROUP_MAIN)
+
+
+@app.function(
+    image=image,
+    secrets=[secret],
+    memory=4096,
+    max_containers=5,
+    scaledown_window=300
+)
+@modal.asgi_app(label="web-app")
+def api_main():
+
+    web_app = FastAPI()
+
+    toolset.init_logger()
+
+    register_middlewares(web_app)
+    register_routers(web_app)
+
+    return web_app
 
 """
 部署方式:
     modal deploy main.py
+    modal deploy apps/app.py
 
 启动本地调试:
     modal run main.py
+    modal run apps/app.py
 
 列出函数/cls:
     modal app list

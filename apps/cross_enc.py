@@ -8,13 +8,8 @@
 import modal
 import typing
 from loguru import logger
-from fastapi import Request
 from sentence_transformers import CrossEncoder
-from middlewares.mid_auth import auth_middleware
-from middlewares.mid_exception import exception_middleware
-from schemas.cognitive import RerankResponse
-from schemas.errors import BizError
-from images.emb_image import (
+from images.embed_image import (
     image, secret
 )
 from utils import toolset
@@ -45,35 +40,23 @@ class CrossENC(object):
         self.reranker = CrossEncoder(src)
         logger.info("🔥 Cross Encoder model loaded")
 
-    @modal.fastapi_endpoint(method="POST")
-    @exception_middleware
-    @auth_middleware("X-Token")
-    async def rerank(self, request: Request) -> RerankResponse:
-        logger.info(f"========== Rerank Begin ==========")
-        logger.info(f"Request: {request.method} {request.url}")
+    @modal.method()
+    async def heartbeat(self) -> str:
+        return self.reranker.__str__()
 
-        try:
-            body      = await request.json()
-            query     = body.get("query")
-            candidate = body.get("candidate")
+    @modal.method()
+    async def rerank(self, query: str, candidate: list[str]) -> dict:
+        logger.info(f"✦ 1) 计算逻辑")
+        pairs         = [[query, t] for t in candidate]
+        rerank_scores = self.reranker.predict(pairs)
+        scores        = [float(s) for s in rerank_scores]
+        logger.info(f"✦ 2) 最终得分 {scores}")
 
-            if not query or not isinstance(candidate, list) or not candidate:
-                raise BizError(
-                    status_code=400, detail="query and candidate (list) are required"
-                )
-
-            logger.info(f"Rerank 计算逻辑")
-            pairs = [[query, t] for t in candidate]
-            rerank_scores = self.reranker.predict(pairs)
-            scores = [float(s) for s in rerank_scores]
-            logger.info(f"Rerank 最终得分 {scores}")
-
-            logger.info(f"Rerank 下发结果 RerankResponse")
-            return RerankResponse(
-                scores=scores, count=len(scores)
-            )
-        finally:
-            logger.info(f"========== Rerank Final ==========")
+        logger.info(f"✦ 3) 下发结果")
+        return {
+            "scores" : scores,
+            "count"  : len(scores)
+        }
 
 
 if __name__ == '__main__':

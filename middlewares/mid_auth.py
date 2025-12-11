@@ -5,43 +5,38 @@
 # /_/   \_\__,_|\__|_| |_| |_|  |_|_|\__,_|\__,_|_|\___| \_/\_/ \__,_|_|  \___|
 #
 
-from functools import wraps
+import typing
 from loguru import logger
+from fastapi import Request
 from schemas.errors import AuthorizationError
-from utils import toolset
+from utils import (
+    const,toolset
+)
 
 
-def auth_middleware(key: str = "X-Token"):
+async def auth_middleware(
+    request: Request,
+    call_next: typing.Callable
+) -> typing.Any:
     """鉴权中间件"""
 
-    def decorator(func):
+    if not (token := request.headers.get(const.AUTH_KEY)):
+        logger.error(
+            f"🚫 Missing credentials — {const.AUTH_KEY}={token}"
+        )
+        raise AuthorizationError(
+            status_code=401, detail="Missing authentication credentials"
+        )
 
-        @wraps(func)
-        async def wrapper(*args, **kwargs):
-            if "request" in kwargs: request = kwargs["request"]
-            else: request = args[1] if hasattr(args[0], "__dict__") else args[0]
+    try:
+        toolset.verify_token(token)
+    except Exception as e:
+        logger.error(f"❗ Token verification failed, Reason={e}")
+        raise AuthorizationError(
+            status_code=403, detail="Invalid token"
+        )
 
-            if not (token := request.headers.get(key)):
-                logger.error(
-                    f"🚫 Missing credentials — {key}={token}"
-                )
-                raise AuthorizationError(
-                    status_code=401, detail="Missing authentication credentials"
-                )
-
-            try:
-                toolset.verify_token(token)
-            except Exception as e:
-                logger.error(f"❗ Token verification failed, Reason={e}")
-                raise AuthorizationError(
-                    status_code=403, detail="Invalid token"
-                )
-
-            return await func(*args, **kwargs)
-
-        return wrapper
-
-    return decorator
+    return await call_next(request)
 
 
 if __name__ == '__main__':

@@ -53,7 +53,6 @@ class TensorResponse(BaseModel):
     count: int = Field(..., description="向量数量", examples=[2])
     dim: int = Field(..., description="向量维度", examples=[768])
     model: str = Field(..., description="使用的 embedding 模型", examples=["bge-m3"])
-    error: typing.Optional[str] = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -70,9 +69,12 @@ class RerankResponse(BaseModel):
         返回得分数量（候选文本数量）。
     """
 
-    scores: typing.Optional[list[float]] = Field(..., description="Rerank 打分结果，按输入顺序对应 candidate")
-    count: typing.Optional[int] = Field(..., description="评分条数，等于 candidate 数量")
-    error: typing.Optional[str] = None
+    scores: typing.Optional[list[float]] = Field(
+        ..., description="Rerank 打分结果，按输入顺序对应 candidate"
+    )
+    count: typing.Optional[int] = Field(
+        ..., description="评分条数，等于 candidate 数量"
+    )
 
     model_config = ConfigDict(from_attributes=True)
 
