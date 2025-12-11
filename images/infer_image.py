@@ -16,7 +16,7 @@ image = modal.Image.debian_slim(
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).add_local_dir(
-    ".", "/root", ignore=["*venv", "*.venv", "models/"]
+    ".", "/root", ignore=const.IGNORE
 ).add_local_dir(
     "models/sequence", "/root/models/sequence"
 )

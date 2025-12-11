@@ -14,7 +14,7 @@ image = modal.Image.debian_slim(
 ).pip_install(
     const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
-    ".", "/root", ignore=["*venv", "*.venv", "models/"]
+    ".", "/root", ignore=const.IGNORE
 ).add_local_dir(
     "models/bge_base_en", "/root/models/bge_base_en"
 ).add_local_dir(

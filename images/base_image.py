@@ -15,7 +15,7 @@ image = modal.Image.debian_slim(
 ).pip_install(
     const.BASE_DEPENDENCIES
 ).add_local_dir(
-    ".", "/root", ignore=["*venv", "*.venv", "models/"]
+    ".", "/root", ignore=const.IGNORE
 )
 secret = modal.Secret.from_name("SHARED_SECRET")
 

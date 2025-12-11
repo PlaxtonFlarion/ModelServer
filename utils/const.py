@@ -11,11 +11,21 @@ PRINT_FORMAT = r"<bold><level>{level}</level></bold>: <bold><cyan>{message}</cya
 WRITE_FORMAT = r"{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 
 # ==== Notes: 鉴权 ====
-AUTH_KEY   = r"X-Token"
+AUTH_KEY = r"X-Token"
 
 # ==== Notes: 分组 ====
 GROUP_MAIN = r"apps"
 GROUP_FUNC = r"functions"
+
+# ==== Notes: 过滤 ====
+IGNORE = [
+    "*venv",
+    "*.venv",
+    "models/",
+    "__pycache__/",
+    ".idea/",
+    ".DS_Store"
+]
 
 # ==== Notes: 依赖 ====
 BASE_DEPENDENCIES = [
