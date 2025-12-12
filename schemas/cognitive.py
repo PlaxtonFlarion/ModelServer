@@ -77,7 +77,7 @@ class YoloDetectionResponse(BaseModel):
     status: str = Field("ok", description="接口状态")
     model: str = Field(..., description="YOLO 模型名称")
     count: int = Field(..., description="检测到的对象数量")
-    objects: typing.List[YoloObject] = Field(default_factory=list)
+    objects: list[YoloObject] = Field(default_factory=list)
     ts: int = Field(..., description="Unix 时间戳（秒）")
 
     model_config = ConfigDict(from_attributes=True)
