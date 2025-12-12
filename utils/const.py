@@ -118,6 +118,20 @@ BASE_DEPENDENCIES = [
 
 # ==== Notes: embedding 依赖 ====
 EMBEDDING_DEPENDENCIES = [
+    "modal==1.2.4",
+    "synchronicity==0.10.5",
+    "propcache==0.4.1",
+    "grpclib==0.4.8",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
+    "fastapi==0.123.9",
+    "starlette==0.50.0",
+    "pydantic==2.12.5",
+    "uvicorn==0.38.0",
+    "httpx==0.28.1",
+    "loguru==0.7.3",
+    "redis==5.0.3",
+    "hiredis==2.3.2",
     "sentence-transformers==5.1.2",
     "transformers==4.57.3",
     "tokenizers==0.22.1",
@@ -133,6 +147,20 @@ EMBEDDING_DEPENDENCIES = [
 
 # ==== Notes: inference 依赖 ====
 INFERENCE_DEPENDENCIES = [
+    "modal==1.0.4",
+    "synchronicity==0.9.16",
+    "propcache==0.3.2",
+    "grpclib==0.4.7",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
+    "fastapi==0.110.2",
+    "starlette==0.37.2",
+    "pydantic==2.12.5",
+    "uvicorn==0.37.2",
+    "httpx==0.27.0",
+    "loguru==0.7.3",
+    "redis==5.0.3",
+    "hiredis==2.3.2"
     "watchfiles==1.1.0",
     "shellingham==1.5.4",
     "typer==0.16.0",
@@ -180,6 +208,20 @@ INFERENCE_DEPENDENCIES = [
 
 # ==== Notes: yolo 依赖 ====
 YOLO_DEPENDENCIES = [
+    "modal==1.2.4",
+    "synchronicity==0.10.5",
+    "propcache==0.4.1",
+    "grpclib==0.4.8",
+    "types-toml==0.10.8.20240310",
+    "python-multipart==0.0.20",
+    "fastapi==0.123.9",
+    "starlette==0.50.0",
+    "pydantic==2.12.5",
+    "uvicorn==0.38.0",
+    "httpx==0.28.1",
+    "loguru==0.7.3",
+    "redis==5.0.3",
+    "hiredis==2.3.2",
     "ultralytics==8.3.237"
 ]
 

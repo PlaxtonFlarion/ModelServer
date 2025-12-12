@@ -1,10 +1,10 @@
 # --------------------------------------------------------------
 # Notes: Modal 服务运行核心依赖
 # --------------------------------------------------------------
-modal                          ==1.2.4            # Modal 平台 SDK
-synchronicity                  ==0.10.5           # Modal 异步兼容层
-propcache                      ==0.4.1            # Modal 缓存机制
-grpclib                        ==0.4.8            # Modal RPC 依赖
+modal                          ==1.0.4            # Modal 平台 SDK
+synchronicity                  ==0.9.16           # Modal 异步兼容层
+propcache                      ==0.3.2            # Modal 缓存机制
+grpclib                        ==0.4.7            # Modal RPC 依赖
 types-toml                     ==0.10.8.20240310  # 类型提示支持
 python-multipart               ==0.0.20           # 处理文件上传
 
