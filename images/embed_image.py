@@ -12,9 +12,7 @@ from utils import const
 image = modal.Image.debian_slim(
     "3.11"
 ).pip_install(
-    const.BASE_DEPENDENCIES
-).pip_install(
-    const.EMBEDDING_DEPENDENCIES
+    const.BASE_DEPENDENCIES + const.EMBEDDING_DEPENDENCIES
 ).add_local_dir(
     ".", "/root", ignore=const.IGNORE
 ).add_local_dir(
