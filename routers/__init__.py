@@ -11,6 +11,7 @@ from .rt_common    import common_router
 from .rt_embedding import embedding_router
 from .rt_inference import inference_router
 from .rt_rerank    import rerank_router
+from .rt_yolo      import yolo_router
 
 
 def register_routers(web_app: FastAPI):
@@ -18,6 +19,7 @@ def register_routers(web_app: FastAPI):
     web_app.include_router(embedding_router  )
     web_app.include_router(inference_router  )
     web_app.include_router(rerank_router     )
+    web_app.include_router(yolo_router       )
 
 
 if __name__ == '__main__':

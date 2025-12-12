@@ -20,7 +20,7 @@ from utils import const
 yolo_router = APIRouter(tags=["Yolo"])
 
 
-@yolo_router.get(
+@yolo_router.post(
     path="/yolo-detection",
     response_model=YoloDetectionResponse,
     operation_id="api_yolo_detection"

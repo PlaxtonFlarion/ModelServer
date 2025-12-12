@@ -37,12 +37,10 @@ app = modal.App(const.GROUP_MAIN)
 def api_main():
 
     web_app = FastAPI()
-
-    web_app.state.shared_secret = os.environ["SHARED_SECRET"]
-
     web_app.state.cache = RedisCache(
         os.environ["REDIS_URL"], os.environ["REDIS_KEY"]
     )
+    web_app.state.shared_secret = os.environ["SHARED_SECRET"]
 
     toolset.init_logger()
 
