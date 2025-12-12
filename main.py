@@ -38,7 +38,7 @@ def api_main():
 
     web_app = FastAPI()
 
-    web_app.state.shared_key = os.environ["SHARED_SECRET"]
+    web_app.state.shared_secret = os.environ["SHARED_SECRET"]
 
     web_app.state.cache = RedisCache(
         os.environ["REDIS_URL"], os.environ["REDIS_KEY"]
