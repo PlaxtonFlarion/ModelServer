@@ -224,8 +224,8 @@ YOLO_DEPENDENCIES = [
     "hiredis==2.3.2",
     "ultralytics==8.3.237",
     "opencv-python==4.12.0.88",
-    "Pillow==9.5.0",
-    "numpy==1.26.4"
+    "Pillow==12.0.0",
+    "numpy==2.2.6"
 ]
 
 
