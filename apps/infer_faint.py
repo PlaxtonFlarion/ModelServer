@@ -18,7 +18,7 @@ from services.sequential.video import (
 )
 from schemas.cognitive import FrameMeta
 from images.infer_image import (
-    image, secret
+    image, secrets
 )
 from utils import toolset
 
@@ -34,7 +34,7 @@ toolset.init_logger()
 @app.cls(
     image=image,
     # gpu="A10G",
-    secrets=[secret],
+    secrets=secrets,
     memory=8192,
     max_containers=5,
     scaledown_window=300

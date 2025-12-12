@@ -10,6 +10,69 @@ SHOW_LEVEL   = r"INFO"
 PRINT_FORMAT = r"<bold><level>{level}</level></bold>: <bold><cyan>{message}</cyan></bold>"
 WRITE_FORMAT = r"{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 
+# ==== Notes: 限流 ====
+RATE_CONFIG = {
+    "default": {
+      "burst": 10,
+      "rate": 2,
+      "max_wait": 1
+    },
+    "routes": {
+      "/service": {
+        "burst": 5,
+        "rate": 1
+      },
+      "/predict": {
+        "burst": 5,
+        "rate": 1
+      },
+      "/rerank": {
+        "burst": 5,
+        "rate": 1
+      },
+      "/tensor/en": {
+        "burst": 5,
+        "rate": 1
+      },
+      "/tensor/zh": {
+        "burst": 5,
+        "rate": 1
+      }
+    },
+    "ip": {}
+}
+
+# ==== Notes: Redis Token Bucket ====
+TOKEN_BUCKET_LUA = """
+local key   = KEYS[1]
+local burst = tonumber(ARGV[1])
+local rate  = tonumber(ARGV[2])
+local now   = tonumber(ARGV[3])
+
+local data = redis.call("HMGET", key, "tokens", "time")
+local tokens = tonumber(data[1])
+local last   = tonumber(data[2])
+
+if tokens == nil then
+    tokens = burst
+    last   = now
+else
+    local delta = (now - last) / 1000.0
+    if delta > 0 then
+        tokens = math.min(burst, tokens + delta * rate)
+    end
+end
+
+if tokens >= 1 then
+    tokens = tokens - 1
+    redis.call("HMSET", key, "tokens", tokens, "time", now)
+    redis.call("EXPIRE", key, math.ceil(burst/rate)+2)
+    return tokens
+else
+    return -1
+end
+"""
+
 # ==== Notes: 鉴权 ====
 AUTH_KEY = r"X-Token"
 

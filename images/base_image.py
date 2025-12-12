@@ -17,7 +17,10 @@ image = modal.Image.debian_slim(
 ).add_local_dir(
     ".", "/root", ignore=const.IGNORE
 )
-secret = modal.Secret.from_name("SHARED_SECRET")
+secrets = [
+    modal.Secret.from_name("SHARED_SECRET"),
+    modal.Secret.from_name("REDIS")
+]
 
 
 if __name__ == '__main__':

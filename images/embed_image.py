@@ -22,7 +22,9 @@ image = modal.Image.debian_slim(
 ).add_local_dir(
     "models/cross_encoder", "/root/models/cross_encoder"
 )
-secret = modal.Secret.from_name("SHARED_SECRET")
+secrets = [
+    modal.Secret.from_name("SHARED_SECRET")
+]
 
 
 if __name__ == '__main__':

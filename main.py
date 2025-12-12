@@ -6,15 +6,18 @@
 #
 # Notes: ==== https://modal.com/ ====
 
+import os
 import modal
 
 from fastapi import FastAPI
+
+from services.infrastructure.cache.redis_cache import RedisCache
 
 from middlewares import register_middlewares
 from routers     import register_routers
 
 from images.base_image import (
-    image, secret
+    image, secrets
 )
 from utils import (
     const, toolset
@@ -25,7 +28,7 @@ app = modal.App(const.GROUP_MAIN)
 
 @app.function(
     image=image,
-    secrets=[secret],
+    secrets=secrets,
     memory=4096,
     max_containers=5,
     scaledown_window=300
@@ -34,6 +37,12 @@ app = modal.App(const.GROUP_MAIN)
 def api_main():
 
     web_app = FastAPI()
+
+    web_app.state.shared_key = os.environ["SHARED_SECRET"]
+
+    web_app.state.cache = RedisCache(
+        os.environ["REDIS_URL"], os.environ["REDIS_KEY"]
+    )
 
     toolset.init_logger()
 

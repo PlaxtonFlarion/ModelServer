@@ -29,7 +29,7 @@ async def auth_middleware(
         )
 
     try:
-        toolset.verify_token(token)
+        toolset.verify_token(request, token)
     except Exception as e:
         logger.error(f"❗ Token verification failed, Reason={e}")
         raise AuthorizationError(

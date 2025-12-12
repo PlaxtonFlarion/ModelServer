@@ -12,7 +12,7 @@ import asyncio
 from loguru import logger
 from sentence_transformers import SentenceTransformer
 from images.embed_image import (
-    image, secret
+    image, secrets
 )
 from utils import toolset
 
@@ -27,7 +27,7 @@ toolset.init_logger()
 
 @app.cls(
     image=image,
-    secrets=[secret],
+    secrets=secrets,
     memory=4096,
     max_containers=5,
     scaledown_window=300

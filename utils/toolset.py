@@ -5,7 +5,6 @@
 #   |_|\___/ \___/|_|___/\___|\__|
 #
 
-import os
 import re
 import sys
 import time
@@ -14,6 +13,7 @@ import base64
 import typing
 import hashlib
 from loguru import logger
+from fastapi import Request
 from fastapi.responses import JSONResponse
 from utils import const
 
@@ -106,10 +106,10 @@ def judge_channel(shape: tuple[int, ...]) -> int:
             1 if len(shape) == 2 else None
 
 
-def verify_token(token: str) -> typing.Union["JSONResponse", bool]:
+def verify_token(request: Request, token: str) -> typing.Union["JSONResponse", bool]:
     """鉴权"""
 
-    shared_secret = os.environ["SHARED_SECRET"]
+    shared_secret = request.app.state.shared_secret
 
     logger.info(f"Verify token: {desensitize(token)}")
     if not token:

@@ -20,7 +20,9 @@ image = modal.Image.debian_slim(
 ).add_local_dir(
     "models/sequence", "/root/models/sequence"
 )
-secret = modal.Secret.from_name("SHARED_SECRET")
+secrets = [
+    modal.Secret.from_name("SHARED_SECRET")
+]
 
 
 if __name__ == '__main__':
