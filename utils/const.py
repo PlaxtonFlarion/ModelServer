@@ -160,7 +160,7 @@ INFERENCE_DEPENDENCIES = [
     "httpx==0.27.0",
     "loguru==0.7.3",
     "redis==5.0.3",
-    "hiredis==2.3.2"
+    "hiredis==2.3.2",
     "watchfiles==1.1.0",
     "shellingham==1.5.4",
     "typer==0.16.0",
