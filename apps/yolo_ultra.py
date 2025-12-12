@@ -12,7 +12,7 @@ import typing
 from PIL import Image
 from loguru import logger
 from ultralytics import YOLO
-from images.embed_image import (
+from images.yolo_image import (
     image, secrets
 )
 from utils import toolset
