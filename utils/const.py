@@ -103,7 +103,9 @@ BASE_DEPENDENCIES = [
     "pydantic==2.12.5",
     "uvicorn==0.38.0",
     "httpx==0.28.1",
-    "loguru==0.7.3"
+    "loguru==0.7.3",
+    "redis==5.0.3",
+    "hiredis==2.3.2"
 ]
 
 # ==== Notes: 依赖 ====
