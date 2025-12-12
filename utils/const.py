@@ -116,19 +116,8 @@ BASE_DEPENDENCIES = [
     "hiredis==2.3.2"
 ]
 
-# ==== Notes: 依赖 ====
+# ==== Notes: embedding 依赖 ====
 EMBEDDING_DEPENDENCIES = [
-    "modal==1.2.4",
-    "synchronicity==0.10.5",
-    "propcache==0.4.1",
-    "grpclib==0.4.8",
-    "fastapi==0.123.9",
-    "types-toml==0.10.8.20240310",
-    "python-multipart==0.0.20",
-    "starlette==0.50.0",
-    "pydantic==2.12.5",
-    "uvicorn==0.38.0",
-    "httpx==0.28.1",
     "sentence-transformers==5.1.2",
     "transformers==4.57.3",
     "tokenizers==0.22.1",
@@ -139,27 +128,14 @@ EMBEDDING_DEPENDENCIES = [
     "threadpoolctl==3.6.0",
     "scikit-learn==1.4.2 ",
     "Pillow==9.5.0",
-    "accelerate==1.12.0",
-    "loguru==0.7.3 "
+    "accelerate==1.12.0"
 ]
 
-# ==== Notes: 依赖 ====
+# ==== Notes: inference 依赖 ====
 INFERENCE_DEPENDENCIES = [
-    "modal==1.2.4",
-    "synchronicity==0.10.5",
-    "propcache==0.4.1",
-    "grpclib==0.4.8",
-    "types-toml==0.10.8.20240310",
-    "python-multipart==0.0.20",
-    "fastapi==0.110.2",
-    "starlette==0.37.2",
-    "pydantic==2.11.4",
-    "uvicorn==0.29.0",
-    "httpx==0.27.0",
     "watchfiles==1.1.0",
     "shellingham==1.5.4",
     "typer==0.16.0",
-    "loguru==0.7.3",
     "rich==14.0.0",
     "markdown-it-py==3.0.0",
     "mdurl==0.1.2",
@@ -199,7 +175,12 @@ INFERENCE_DEPENDENCIES = [
     "sentence-transformers==5.1.2",
     "transformers==4.57.3",
     "tokenizers==0.22.1",
-    "accelerate==1.12.0",
+    "accelerate==1.12.0"
+]
+
+# ==== Notes: yolo 依赖 ====
+YOLO_DEPENDENCIES = [
+    "ultralytics==8.3.237"
 ]
 
 

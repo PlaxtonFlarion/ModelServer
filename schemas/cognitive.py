@@ -27,12 +27,6 @@ class FrameMeta(BaseModel):
 
 
 class TensorResponse(BaseModel):
-    """
-    Tensor Embedding Response
-
-    返回 query 向量及 elements 对应向量结果，用于向量召回/相似度计算。
-    """
-
     query: typing.Optional[str] = Field(None, description="原始输入文本")
     query_vec: typing.Optional[list[float]] = Field(
         None,
@@ -58,17 +52,6 @@ class TensorResponse(BaseModel):
 
 
 class RerankResponse(BaseModel):
-    """
-    Rerank Response
-
-    Returns
-    -------
-    scores : List[float]
-        每个候选文本的相关性得分，数值越大越相关。
-    count : int
-        返回得分数量（候选文本数量）。
-    """
-
     scores: typing.Optional[list[float]] = Field(
         ..., description="Rerank 打分结果，按输入顺序对应 candidate"
     )
@@ -79,8 +62,28 @@ class RerankResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
-class Mix(BaseModel):
+class YoloObject(BaseModel):
+    index: int = Field(..., description="对象索引，用于 LLM / Action 引用")
+    label: str = Field(..., description="YOLO 识别的类别名称")
+    bbox: list[int] = Field(
+        ..., min_length=4, max_length=4, description="边界框 [x1, y1, x2, y2]"
+    )
+    score: float = Field(..., ge=0.0, le=1.0, description="置信度")
 
+    model_config = ConfigDict(from_attributes=True)
+
+
+class YoloDetectionResponse(BaseModel):
+    status: str = Field("ok", description="接口状态")
+    model: str = Field(..., description="YOLO 模型名称")
+    count: int = Field(..., description="检测到的对象数量")
+    objects: typing.List[YoloObject] = Field(default_factory=list)
+    ts: int = Field(..., description="Unix 时间戳（秒）")
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class Mix(BaseModel):
     app: dict[str, typing.Any] = Field(default_factory=dict)
     white_list: list[str] = Field(default_factory=list)
     rate_config: dict[str, typing.Any] = Field(default_factory=dict)

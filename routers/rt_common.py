@@ -35,7 +35,7 @@ async def api_service(request: Request) -> JSONResponse:
             *(modal.Cls.from_name(app_name=const.GROUP_FUNC, name=name)()
               .heartbeat.remote.aio() for name in tasks)
         ):
-            logger.info(f"HeartBeat: {resp}")
+            logger.info(resp)
 
         content = {
             "status"    : "OK",

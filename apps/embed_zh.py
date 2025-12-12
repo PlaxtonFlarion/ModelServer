@@ -43,8 +43,12 @@ class EmbeddingZH(object):
         logger.info("🔥 BGE embedding model loaded")
 
     @modal.method()
-    async def heartbeat(self) -> str:
-        return self.embedder.__str__()
+    async def heartbeat(self) -> dict:
+        return {
+            "status"  : "ok",
+            "service" : "tensor",
+            "model"   : "bge-base-zh-v1.5"
+        }
 
     @modal.method()
     async def tensor(self, query: str, elements: list[str], mesh: list[str]) -> dict:
@@ -81,4 +85,6 @@ class EmbeddingZH(object):
 
 
 if __name__ == '__main__':
+    embedder = SentenceTransformer("/Users/acekeppel/PycharmProjects/ModelServer/models/bge_base_en")
+    print(embedder.dtype)
     pass

@@ -43,8 +43,12 @@ class EmbeddingEN(object):
         logger.info("🔥 BGE embedding model loaded")
 
     @modal.method()
-    async def heartbeat(self) -> str:
-        return self.embedder.__str__()
+    async def heartbeat(self) -> dict:
+        return {
+            "status"  : "ok",
+            "service" : "tensor",
+            "model"   : "bge-base-en-v1.5"
+        }
 
     @modal.method()
     async def tensor(self, query: str, elements: list[str], mesh: list[str]) -> dict:

@@ -12,6 +12,8 @@ from utils import const
 image = modal.Image.debian_slim(
     "3.11"
 ).pip_install(
+    const.BASE_DEPENDENCIES
+).pip_install(
     const.INFERENCE_DEPENDENCIES
 ).apt_install(
     "libgl1", "libglib2.0-0", "ffmpeg"

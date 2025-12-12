@@ -36,13 +36,17 @@ class CrossENC(object):
 
     @modal.enter()
     def startup(self) -> None:
-        logger.info("🔥 Cross Encoder model loading ...")
+        logger.info("🔥 CrossEncoder model loading ...")
         self.reranker = CrossEncoder(src)
-        logger.info("🔥 Cross Encoder model loaded")
+        logger.info("🔥 CrossEncoder model loaded")
 
     @modal.method()
-    async def heartbeat(self) -> str:
-        return self.reranker.__str__()
+    async def heartbeat(self) -> dict:
+        return {
+            "status"  : "ok",
+            "service" : "rerank",
+            "model"   : "ms-marco-MiniLM-L-12-v2"
+        }
 
     @modal.method()
     async def rerank(self, query: str, candidate: list[str]) -> dict:

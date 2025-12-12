@@ -1,0 +1,84 @@
+# __   __    _         _   _ _ _
+# \ \ / /__ | | ___   | | | | | |_ _ __ __ _
+#  \ V / _ \| |/ _ \  | | | | | __| '__/ _` |
+#   | | (_) | | (_) | | |_| | | |_| | | (_| |
+#   |_|\___/|_|\___/   \___/|_|\__|_|  \__,_|
+#
+
+import io
+import modal
+import numpy
+import typing
+from PIL import Image
+from loguru import logger
+from ultralytics import YOLO
+from images.embed_image import (
+    image, secrets
+)
+from utils import toolset
+
+# Notes: https://huggingface.co/Ultralytics/
+# yolo11s
+
+app = modal.App("yolo")
+src = "/root/models/yolo_11/yolo11s.pt"
+
+toolset.init_logger()
+
+
+@app.cls(
+    image=image,
+    secrets=secrets,
+    memory=4096,
+    max_containers=5,
+    scaledown_window=300
+)
+class YoloUltra(object):
+
+    yolo_model: typing.Optional[YOLO] = None
+
+    @modal.enter()
+    def startup(self) -> None:
+        logger.info("🔥 Yolo model loading ...")
+        self.yolo_model = YOLO(src)
+        logger.info("🔥 Yolo model loaded")
+
+    @modal.method()
+    async def heartbeat(self) -> dict:
+        return {
+            "status"  : "ok",
+            "service" : "detection",
+            "model"   : "yolo11s"
+        }
+
+    @modal.method()
+    async def detection(self, image_bytes: bytes) -> dict:
+        image_array = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+        image_final = numpy.array(image_array)
+
+        values = self.yolo_model(image_final, verbose=False)
+        result = values[0]
+
+        objects: list[dict] = []
+
+        if result.boxes is None: return {"objects": objects}
+
+        for box in result.boxes:
+            cls = int(box.cls[0])
+            x1, y1, x2, y2 = map(int, box.xyxy[0])
+            cfg = float(box.conf[0])
+
+            objects.append({
+                "label" : self.yolo_model.names[cls],
+                "bbox"  : [x1, y1, x2, y2],
+                "score" : round(cfg, 4),
+            })
+
+        return {
+            "objects" : objects,
+            "count"   : len(objects),
+        }
+
+
+if __name__ == '__main__':
+    pass

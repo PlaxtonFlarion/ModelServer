@@ -51,8 +51,12 @@ class InferenceColor(object):
         logger.info("🔥 Keras color model loaded")
 
     @modal.method()
-    async def heartbeat(self) -> str:
-        return self.keras_sequential.__str__()
+    async def heartbeat(self) -> dict:
+        return {
+            "status"  : "ok",
+            "service" : self.keras_sequential.model.name,
+            "model"   : "Keras_Hued_W256_H256"
+        }
 
     @modal.method(is_generator=True)
     def classify_stream(self, meta_dict: dict, file_bytes: bytes) -> typing.Generator[str, None, None]:
