@@ -8,7 +8,9 @@
 import typing
 from loguru import logger
 from fastapi import Request
+from schemas.cognitive import Mix
 from schemas.errors import AuthorizationError
+from services.infrastructure.cache.redis_cache import RedisCache
 from utils import (
     const,toolset
 )
@@ -19,6 +21,17 @@ async def auth_middleware(
     call_next: typing.Callable
 ) -> typing.Any:
     """鉴权中间件"""
+
+    cache: RedisCache = request.app.state.cache
+
+    if mixed := await cache.get(const.K_MIX): mix = Mix(**mixed)
+    else: mix = Mix(**const.V_MIX)
+
+    public_paths = mix.white_list
+    logger.info(f"远程鉴权白名单 -> {public_paths}")
+
+    if request.url.path in public_paths:
+        return await call_next(request)
 
     if not (token := request.headers.get(const.AUTH_KEY)):
         logger.error(
