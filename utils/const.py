@@ -155,7 +155,7 @@ INFERENCE_DEPENDENCIES = [
     "python-multipart==0.0.20",
     "fastapi==0.110.2",
     "starlette==0.37.2",
-    "pydantic==2.12.5",
+    "pydantic==2.11.4",
     "uvicorn==0.37.2",
     "httpx==0.27.0",
     "loguru==0.7.3",
