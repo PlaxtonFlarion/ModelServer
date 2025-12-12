@@ -39,7 +39,6 @@ async def rate_limit_middleware(
     route_config   = config.get("routes", {}).get(route, {})
     ip_config      = config.get("ip", {}).get(ip, {})
 
-    # ==== 生成最终配置 (IP > route > default) ===
     final = {**default_config, **route_config, **ip_config}
     logger.info(f"RateRule={final}")
 
