@@ -5,7 +5,6 @@
 # |_| \_\__,_|\__\___| |_____|_|_| |_| |_|_|\__| |_|  |_|_|\__,_|\__,_|_|\___| \_/\_/ \__,_|_|  \___|
 #
 
-import json
 import time
 import typing
 import asyncio
@@ -13,6 +12,7 @@ from loguru import logger
 from fastapi import (
     Request, HTTPException
 )
+from schemas.cognitive import Mix
 from services.infrastructure.cache.redis_cache import RedisCache
 from utils import const
 
@@ -25,10 +25,10 @@ async def rate_limit_middleware(
 
     cache: RedisCache = request.app.state.cache
 
-    cache_key = f"RateConfig"
+    if mixed := await cache.get(const.K_MIX): mix = Mix(**mixed)
+    else: mix = Mix(**const.V_MIX)
 
-    if cached := await cache.get(cache_key): config = json.loads(cached)
-    else: config = const.RATE_CONFIG
+    config = mix.rate_config
     logger.info(f"远程限流配置表 -> {config}")
 
     route = request.url.path
@@ -62,8 +62,14 @@ async def rate_limit_middleware(
         if (wait := 1 / rate) > max_wait:
             raise HTTPException(
                 status_code=429,
-                detail={"error": "RATE_LIMIT_HIT", "rule": final, "retry": wait},
-                headers={"Retry-After": str(round(wait))}
+                detail={
+                    "error" : "RATE_LIMIT_HIT",
+                    "rule"  : final,
+                    "retry" : wait
+                },
+                headers={
+                    "Retry-After": str(round(wait))
+                }
             )
         await asyncio.sleep(wait)
 

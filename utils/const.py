@@ -10,38 +10,6 @@ SHOW_LEVEL   = r"INFO"
 PRINT_FORMAT = r"<bold><level>{level}</level></bold>: <bold><cyan>{message}</cyan></bold>"
 WRITE_FORMAT = r"{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 
-# ==== Notes: 限流 ====
-RATE_CONFIG = {
-  "default": {
-    "burst": 10,
-    "rate": 2,
-    "max_wait": 1
-  },
-  "routes": {
-    "/service": {
-    "burst": 5,
-    "rate": 1
-    },
-    "/predict": {
-      "burst": 5,
-      "rate": 1
-    },
-    "/rerank": {
-      "burst": 5,
-      "rate": 1
-    },
-    "/tensor/en": {
-      "burst": 5,
-      "rate": 1
-    },
-    "/tensor/zh": {
-      "burst": 5,
-      "rate": 1
-    }
-  },
-  "ip": {}
-}
-
 # ==== Notes: Redis Token Bucket ====
 TOKEN_BUCKET_LUA = """
 local key   = KEYS[1]
@@ -72,6 +40,46 @@ else
     return -1
 end
 """
+
+# ==== Notes: Notes: Redis Hot Key ====
+K_MIX = "Mix"
+V_MIX = {
+  "app": {},
+  "white_list": [
+    "/",
+    "/status"
+  ],
+  "rate_config": {
+    "default": {
+      "burst": 10,
+      "rate": 2,
+      "max_wait": 1
+    },
+    "routes": {
+      "/service": {
+        "burst": 2,
+        "rate": 0.2
+      },
+      "/tensor/en": {
+        "burst": 2,
+        "rate": 0.2
+      },
+      "/tensor/zh": {
+        "burst": 2,
+        "rate": 0.2
+      },
+      "/predict": {
+        "burst": 2,
+        "rate": 0.2
+      },
+      "/rerank": {
+        "burst": 2,
+        "rate": 0.2
+      },
+    },
+    "ip": {}
+  }
+}
 
 # ==== Notes: 鉴权 ====
 AUTH_KEY = r"X-Token"
