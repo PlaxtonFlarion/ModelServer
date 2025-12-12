@@ -5,6 +5,7 @@
 # |_| \_\__,_|\__\___| |_____|_|_| |_| |_|_|\__| |_|  |_|_|\__,_|\__,_|_|\___| \_/\_/ \__,_|_|  \___|
 #
 
+import json
 import time
 import typing
 import asyncio
@@ -26,7 +27,7 @@ async def rate_limit_middleware(
 
     cache_key = f"RateConfig"
 
-    if cached := await cache.get(cache_key): config = cached
+    if cached := await cache.get(cache_key): config = json.loads(cached)
     else: config = const.RATE_CONFIG
     logger.info(f"远程限流配置表 -> {config}")
 

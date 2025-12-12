@@ -12,34 +12,34 @@ WRITE_FORMAT = r"{time:YYYY-MM-DD HH:mm:ss} | {level} | {message}"
 
 # ==== Notes: 限流 ====
 RATE_CONFIG = {
-    "default": {
-      "burst": 10,
-      "rate": 2,
-      "max_wait": 1
+  "default": {
+    "burst": 10,
+    "rate": 2,
+    "max_wait": 1
+  },
+  "routes": {
+    "/service": {
+    "burst": 5,
+    "rate": 1
     },
-    "routes": {
-      "/service": {
-        "burst": 5,
-        "rate": 1
-      },
-      "/predict": {
-        "burst": 5,
-        "rate": 1
-      },
-      "/rerank": {
-        "burst": 5,
-        "rate": 1
-      },
-      "/tensor/en": {
-        "burst": 5,
-        "rate": 1
-      },
-      "/tensor/zh": {
-        "burst": 5,
-        "rate": 1
-      }
+    "/predict": {
+      "burst": 5,
+      "rate": 1
     },
-    "ip": {}
+    "/rerank": {
+      "burst": 5,
+      "rate": 1
+    },
+    "/tensor/en": {
+      "burst": 5,
+      "rate": 1
+    },
+    "/tensor/zh": {
+      "burst": 5,
+      "rate": 1
+    }
+  },
+  "ip": {}
 }
 
 # ==== Notes: Redis Token Bucket ====
