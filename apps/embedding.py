@@ -96,6 +96,10 @@ class Embedding(object):
 
             scored: typing.Optional[list[dict[str, str | float]]] = None
             if s:
+                t_2 = time.time()
+                logger.info(
+                    f"🟡 Score enabled | mode=cosine | elements={len(elements)} | k={k or 5}"
+                )
                 scores = (page_vectors @ query_vec).tolist()
                 scored = [
                     {
@@ -106,6 +110,15 @@ class Embedding(object):
                 ]
                 scored.sort(key=lambda x: x["score"], reverse=True)
                 scored = scored[:k or 5]
+
+                v = [x["score"] for x in scored]
+                logger.info(
+                    f"🟢 Score done | avg={sum(v) / len(v):.4f} | cost={time.time() - t_2:.3f}s"
+                )
+                for i, x in enumerate(scored, start=1):
+                    logger.info(
+                        f"   └ Top-{i}: score={x['score']:.4f} | text={x['text'][:10]}"
+                    )
 
             # ===== 5) 统计 =====
             count = len(mesh)
