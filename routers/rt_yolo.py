@@ -36,7 +36,7 @@ async def api_yolo_detection(
 
     try:
         # ✅ 1. Base64 → bytes（只在 HTTP 边界）
-        if not (image_bytes := toolset.secure_b64decode(payload.data)):
+        if not (image_bytes := toolset.secure_b64decode(payload.image_base64)):
             raise BizError(
                 status_code=400, detail="empty image file"
             )

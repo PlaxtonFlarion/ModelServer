@@ -29,12 +29,12 @@ def secure_b64decode(data: str) -> bytes:
     安全 Base64 解码，自动处理 padding / data:image 前缀
     """
 
-    if "," in data: data = data.split(",", 1)[1]
-
+    if "," in data:
+        data = data.split(",", 1)[1]
     data = data.strip()
-    pad = len(data) % 4
-    if pad:
-        data += "=" * (4 - pad)
+
+    if padding := len(data) % 4:
+        data += "=" * (4 - padding)
 
     try:
         return base64.b64decode(data, validate=False)
