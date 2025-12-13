@@ -53,49 +53,54 @@ class YoloUltra(object):
 
     @modal.method()
     async def detection(self, image_bytes: bytes) -> dict:
-        logger.info("🟡 [BEGIN] Detection start")
-        logger.info(
-            f"🟢 [YOLO - 1/5] Image bytes size = {len(image_bytes)}"
-        )
+        logger.info(f"🟡 [BEGIN] Detection start")
+        logger.info(f"🟢 Image bytes size={len(image_bytes)}")
 
         # ===== Step 1: bytes -> PIL =====
         image_pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         logger.info(
-            f"🟢 [YOLO - 2/5] Image decoded (PIL) size={image_pil.size}"
+            f"🟢 [1/5] Image decoded (PIL) size={image_pil.size}"
         )
 
         # ===== Step 2: PIL -> numpy =====
         image_arr = numpy.array(image_pil)
         logger.info(
-            f"🟢 [YOLO - 3/5] Image converted to numpy shape={image_arr.shape} dtype={image_arr.dtype}"
+            f"🟢 [2/5] Image converted to numpy shape={image_arr.shape} dtype={image_arr.dtype}"
         )
 
         # ===== Step 3: YOLO inference =====
         values = self.yolo_model(image_arr, verbose=False)
         result = values[0]
-        logger.info(
-            f"🟢 [YOLO - 4/5] YOLO inference done"
-        )
+        logger.info(f"🟢 [3/5] YOLO inference done")
 
         # ===== Step 4: Parse results =====
         objects: list[dict] = []
 
-        if result.boxes is None: return {"objects": objects}
+        if result.boxes is None:
+            logger.warning("🟠 [4/5] No boxes detected (result.boxes is None)")
+            return {"objects": objects, "count": 0}
 
-        for box in result.boxes:
+        total_boxes = len(result.boxes)
+        logger.info(
+            f"🟢 [YOLO - 4/5] Parsing boxes | total_boxes={total_boxes}"
+        )
+
+        for idx, box in enumerate(result.boxes, start=1):
             cls = int(box.cls[0])
             x1, y1, x2, y2 = map(int, box.xyxy[0])
             cfg = float(box.conf[0])
 
-            objects.append({
+            obj = {
                 "label" : self.yolo_model.names[cls],
                 "bbox"  : [x1, y1, x2, y2],
                 "score" : round(cfg, 4),
-            })
+            }
+            objects.append(obj)
+            logger.info(
+                f"   └ box[{idx}] label={obj['label']} score={obj['score']:.3f} bbox={obj['bbox']}"
+            )
 
-        logger.info(
-            f"🟢 [YOLO - 5/5] Result parsed objects={len(objects)}"
-        )
+        logger.info(f"🟢 [5/5] Result parsed objects={len(objects)}")
         logger.info(f"✅ [FINAL] Detection finished")
 
         return {

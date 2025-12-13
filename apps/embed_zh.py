@@ -5,6 +5,7 @@
 # |_____|_| |_| |_|_.__/ \___|\__,_| /____|_| |_|
 #
 
+import time
 import modal
 import numpy
 import typing
@@ -52,39 +53,62 @@ class EmbeddingZH(object):
 
     @modal.method()
     async def tensor(self, query: str, elements: list[str], mesh: list[str]) -> dict:
-        logger.info("✦ 1) 调用嵌入")
-        embeds = await asyncio.to_thread(
-            self.embedder.encode, mesh, batch_size=16, convert_to_numpy=True
-        )
+        start_ts = time.time()
 
-        logger.info("✦ 2) 归一化 → 更适合向量检索")
-        embeds = embeds / (numpy.linalg.norm(embeds, axis=1, keepdims=True) + 1e-8)
+        logger.info(f"🟡 [BEGIN] Embedding tensor start")
+        logger.info(f"🟢 Input stats | query | elements | mesh")
 
-        for index, embed in enumerate(embeds, start=1):
-            logger.info(f"Embed-{index:04}: {embed.shape}")
-        embeds = numpy.asarray(embeds, dtype="float32")
+        try:
+            # ===== 1) 调用嵌入 =====
+            t1 = time.time()
+            logger.info(
+                f"🟢 1/5) 调用 SentenceTransformer.encode()"
+            )
+            embeds = await asyncio.to_thread(
+                self.embedder.encode, mesh, batch_size=16, convert_to_numpy=True
+            )
+            logger.info(f"   └ done | shape={embeds.shape} | cost={time.time() - t1:.3f}s")
 
-        logger.info(f"✦ 3) 拆分恢复结构")
-        query_vec    = embeds[0] if query else numpy.array([])
-        page_vectors = embeds[1:] if elements else numpy.array([])
+            # ===== 2) 归一化 =====
+            t2 = time.time()
+            logger.info(f"🟢 2/5) 向量归一化（L2）")
+            embeds = embeds / (numpy.linalg.norm(embeds, axis=1, keepdims=True) + 1e-8)
+            logger.info(f"   └ done | cost={time.time() - t2:.3f}s")
 
-        logger.info(f"✦ 4) 统计")
-        count = len(mesh)
-        dim   = embeds.shape[-1] if mesh else 0
+            # ===== 3) 转 dtype =====
+            logger.info("🟢 3/5) 转 float32")
+            embeds = numpy.asarray(embeds, dtype="float32")
 
-        logger.info(f"✦ 5) 下发结果")
-        return {
-            "query"        : query,
-            "query_vec"    : query_vec.tolist(),
-            "elements"     : elements,
-            "page_vectors" : page_vectors.tolist(),
-            "count"        : count,
-            "dim"          : dim,
-            "model"        : "bge-base-en-v1.5"
-        }
+            # ===== 4) 拆分结构 =====
+            logger.info("🟢 4/5) 拆分 query / page vectors")
+            query_vec    = embeds[0] if query else numpy.array([], dtype="float32")
+            page_vectors = embeds[1:] if elements else numpy.array([], dtype="float32")
+
+            # ===== 5) 统计 =====
+            count = len(mesh)
+            dim   = embeds.shape[-1] if count else 0
+
+            logger.info(
+                f"🟢 5/5) 统计完成 | count={count} | dim={dim}"
+            )
+            logger.info(
+                f"✅ [FINAL] Embedding tensor finished | elapsed={time.time() - start_ts:.3f}s"
+            )
+
+            return {
+                "query"        : query,
+                "query_vec"    : query_vec.tolist(),
+                "elements"     : elements,
+                "page_vectors" : page_vectors.tolist(),
+                "count"        : count,
+                "dim"          : dim,
+                "model"        : "bge-base-en-v1.5"
+            }
+
+        except Exception as e:
+            logger.exception("❌ [ERROR] Embedding tensor failed")
+            raise e
 
 
 if __name__ == '__main__':
-    embedder = SentenceTransformer("/Users/acekeppel/PycharmProjects/ModelServer/models/bge_base_en")
-    print(embedder.dtype)
     pass
