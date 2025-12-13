@@ -8,14 +8,12 @@
 
 import os
 import modal
-
+import typing
+import contextlib
 from fastapi import FastAPI
-
 from services.infrastructure.cache.redis_cache import RedisCache
-
 from middlewares import register_middlewares
-from routers     import register_routers
-
+from routers import register_routers
 from images.base_image import (
     image, secrets
 )
@@ -36,11 +34,16 @@ app = modal.App(const.GROUP_MAIN)
 @modal.asgi_app(label="web-app")
 def api_main():
 
-    web_app = FastAPI()
-    web_app.state.cache = RedisCache(
-        os.environ["REDIS_URL"], os.environ["REDIS_KEY"]
-    )
-    web_app.state.shared_secret = os.environ["SHARED_SECRET"]
+    @contextlib.asynccontextmanager
+    async def lifespan(wapp: FastAPI) -> typing.AsyncGenerator[None, None]:
+        wapp.state.cache = RedisCache(
+            os.environ["REDIS_URL"], os.environ["REDIS_KEY"]
+        )
+        wapp.state.shared_secret = os.environ["SHARED_SECRET"]
+        yield
+        await wapp.state.cache.client.close()
+
+    web_app = FastAPI(lifespan=lifespan)
 
     toolset.init_logger()
 
