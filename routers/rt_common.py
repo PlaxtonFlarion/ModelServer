@@ -27,7 +27,7 @@ async def api_service(request: Request) -> JSONResponse:
     logger.info(f"**> {request.method} {request.url}")
 
     tasks = [
-        "CrossENC", "EmbeddingEN", "EmbeddingZH", "InferenceColor", "InferenceFaint"
+        "CrossENC", "EmbeddingEN", "EmbeddingZH", "InferenceColor", "InferenceFaint", "YoloUltra"
     ]
 
     try:
@@ -38,8 +38,8 @@ async def api_service(request: Request) -> JSONResponse:
             logger.info(resp)
 
         content = {
-            "status"    : "OK",
-            "message"   : {},
+            "status"    : "ok",
+            "message"   : "modal online",
             "timestamp" : int(time.time()),
         }
         logger.info(content)
