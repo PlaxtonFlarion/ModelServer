@@ -15,12 +15,31 @@ import hashlib
 from loguru import logger
 from fastapi import Request
 from fastapi.responses import JSONResponse
+from schemas.errors import BizError
 from utils import const
 
 
 def init_logger() -> None:
     logger.remove()
     logger.add(sys.stdout, level=const.SHOW_LEVEL, format=const.PRINT_FORMAT)
+
+
+def secure_b64decode(data: str) -> bytes:
+    """
+    安全 Base64 解码，自动处理 padding / data:image 前缀
+    """
+
+    if "," in data: data = data.split(",", 1)[1]
+
+    data = data.strip()
+    pad = len(data) % 4
+    if pad:
+        data += "=" * (4 - pad)
+
+    try:
+        return base64.b64decode(data, validate=False)
+    except Exception as e:
+        raise BizError(status_code=400, detail=f"invalid base64 image: {e}")
 
 
 def desensitize(value: typing.Optional[str]) -> typing.Optional[str]:

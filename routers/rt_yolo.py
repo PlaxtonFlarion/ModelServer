@@ -9,13 +9,15 @@ import time
 import modal
 from loguru import logger
 from fastapi import (
-    APIRouter, Request, UploadFile, File
+    APIRouter, Request
 )
 from schemas.cognitive import (
-    YoloObject, YoloDetectionResponse
+    YoloObject, YoloDetectionRequest, YoloDetectionResponse
 )
 from schemas.errors import BizError
-from utils import const
+from utils import (
+    const, toolset
+)
 
 yolo_router = APIRouter(tags=["Yolo"])
 
@@ -27,21 +29,24 @@ yolo_router = APIRouter(tags=["Yolo"])
 )
 async def api_yolo_detection(
     request: Request,
-    file: UploadFile = File(...)
+    payload: YoloDetectionRequest
 ) -> YoloDetectionResponse:
 
     logger.info(f"**> {request.method} {request.url}")
 
     try:
-        if not (image_bytes := await file.read()):
+        # ✅ 1. Base64 → bytes（只在 HTTP 边界）
+        if not (image_bytes := toolset.secure_b64decode(payload.data)):
             raise BizError(
                 status_code=400, detail="empty image file"
             )
 
         f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="YoloUltra")
 
+        # ✅ 2. Modal 调用（只传 bytes）
         objects_raw = await f().detection.remote.aio(image_bytes)
 
+        # ✅ 3. 结构化结果
         objects = [
             YoloObject(
                 index=i,
@@ -51,6 +56,7 @@ async def api_yolo_detection(
             ) for i, obj in enumerate(objects_raw)
         ]
 
+        # ✅ 4. 下发结构化结果
         return YoloDetectionResponse(
             status="ok",
             model="yolo11s",

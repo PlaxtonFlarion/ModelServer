@@ -73,6 +73,11 @@ class YoloObject(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class YoloDetectionRequest(BaseModel):
+    image_base64: str
+    image_format: typing.Optional[str] = "png"
+
+
 class YoloDetectionResponse(BaseModel):
     status: str = Field("ok", description="接口状态")
     model: str = Field(..., description="YOLO 模型名称")
