@@ -44,7 +44,8 @@ async def api_yolo_detection(
         f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="YoloUltra")
 
         # ✅ 2. Modal 调用（只传 bytes）
-        objects_raw = await f().detection.remote.aio(image_bytes)
+        results_raw = await f().detection.remote.aio(image_bytes)
+        objects_raw = results_raw.get("objects", [])
 
         # ✅ 3. 结构化结果
         objects = [
