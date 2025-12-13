@@ -33,7 +33,7 @@ toolset.init_logger()
     max_containers=5,
     scaledown_window=300
 )
-class YoloUltra(object):
+class Yolo(object):
 
     yolo_model: typing.Optional[YOLO] = None
 

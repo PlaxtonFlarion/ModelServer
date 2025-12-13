@@ -60,19 +60,19 @@ V_MIX = {
         "burst": 2,
         "rate": 0.2
       },
-      "/tensor/en": {
-        "burst": 2,
-        "rate": 0.2
-      },
-      "/tensor/zh": {
-        "burst": 2,
-        "rate": 0.2
-      },
       "/predict": {
         "burst": 2,
         "rate": 0.2
       },
+      "/tensor": {
+        "burst": 2,
+        "rate": 0.2
+      },
       "/rerank": {
+        "burst": 2,
+        "rate": 0.2
+      },
+      "/yolo": {
         "burst": 2,
         "rate": 0.2
       }

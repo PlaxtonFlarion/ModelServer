@@ -18,9 +18,7 @@ image = modal.Image.debian_slim(
 ).add_local_dir(
     ".", "/root", ignore=const.IGNORE
 ).add_local_dir(
-    "models/bge_base_en", "/root/models/bge_base_en"
-).add_local_dir(
-    "models/bge_base_zh", "/root/models/bge_base_zh"
+    "models/bge_m3", "/root/models/bge_m3"
 ).add_local_dir(
     "models/cross_encoder", "/root/models/cross_encoder"
 )

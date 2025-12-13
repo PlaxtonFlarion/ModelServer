@@ -23,9 +23,9 @@ yolo_router = APIRouter(tags=["Yolo"])
 
 
 @yolo_router.post(
-    path="/yolo-detection",
+    path="/yolo",
     response_model=YoloDetectionResponse,
-    operation_id="api_yolo_detection"
+    operation_id="api_yolo"
 )
 async def api_yolo_detection(
     request: Request,

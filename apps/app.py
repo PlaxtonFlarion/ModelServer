@@ -9,22 +9,20 @@
 import modal
 
 from apps.cross_enc   import app as cross_enc_app
-from apps.embed_en    import app as embed_en_app
-from apps.embed_zh    import app as embed_zh_app
+from apps.embedding   import app as embedding_app
 from apps.infer_color import app as infer_color_app
 from apps.infer_faint import app as infer_faint_app
-from apps.yolo_ultra  import app as yolo_ultra_app
+from apps.yolo        import app as yolo_app
 
 from utils import const
 
 app = modal.App(const.GROUP_FUNC)
 
 app.include(cross_enc_app    )
-app.include(embed_en_app     )
-app.include(embed_zh_app     )
+app.include(embedding_app    )
 app.include(infer_color_app  )
 app.include(infer_faint_app  )
-app.include(yolo_ultra_app   )
+app.include(yolo_app   )
 
 
 if __name__ == '__main__':

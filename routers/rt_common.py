@@ -27,7 +27,7 @@ async def api_service(request: Request) -> JSONResponse:
     logger.info(f"**> {request.method} {request.url}")
 
     tasks = [
-        "CrossENC", "EmbeddingEN", "EmbeddingZH", "InferenceColor", "InferenceFaint", "YoloUltra"
+        "CrossENC", "Embedding", "InferenceColor", "InferenceFaint", "Yolo"
     ]
 
     try:

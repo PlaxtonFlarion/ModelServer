@@ -19,41 +19,14 @@ embedding_router = APIRouter(tags=["Embedding"])
 
 
 @embedding_router.post(
-    path="/tensor/en",
+    path="/tensor",
     response_model=TensorResponse,
-    operation_id="api_tensor_en"
+    operation_id="api_tensor"
 )
 async def api_tensor_en(request: Request) -> TensorResponse:
     logger.info(f"**> {request.method} {request.url}")
 
-    f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="EmbeddingEN")
-
-    try:
-        body     = await request.json()
-        query    = body.get("query")
-        elements = body.get("elements")
-        mesh     = ([query] if query else []) + (elements or [])
-
-        if not mesh: raise BizError(
-            status_code=400, detail="query and elements required"
-        )
-
-        resp = await f().tensor.remote.aio(query, elements, mesh)
-        return TensorResponse(**resp)
-
-    finally:
-        logger.info(f"**> {('=' * 12)}")
-
-
-@embedding_router.post(
-    path="/tensor/zh",
-    response_model=TensorResponse,
-    operation_id="api_tensor_zh"
-)
-async def api_tensor_zh(request: Request) -> TensorResponse:
-    logger.info(f"**> {request.method} {request.url}")
-
-    f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="EmbeddingZH")
+    f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="Embedding")
 
     try:
         body     = await request.json()

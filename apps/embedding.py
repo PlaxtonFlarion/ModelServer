@@ -1,8 +1,9 @@
-#  _____           _              _   _____ _   _
-# | ____|_ __ ___ | |__   ___  __| | | ____| \ | |
-# |  _| | '_ ` _ \| '_ \ / _ \/ _` | |  _| |  \| |
-# | |___| | | | | | |_) |  __/ (_| | | |___| |\  |
-# |_____|_| |_| |_|_.__/ \___|\__,_| |_____|_| \_|
+#  _____           _              _     _ _
+# | ____|_ __ ___ | |__   ___  __| | __| (_)_ __   __ _
+# |  _| | '_ ` _ \| '_ \ / _ \/ _` |/ _` | | '_ \ / _` |
+# | |___| | | | | | |_) |  __/ (_| | (_| | | | | | (_| |
+# |_____|_| |_| |_|_.__/ \___|\__,_|\__,_|_|_| |_|\__, |
+#                                                 |___/
 #
 
 import time
@@ -18,10 +19,10 @@ from images.embed_image import (
 from utils import toolset
 
 # Notes: https://huggingface.co/collections/BAAI/bge
-# bge-base-en-v1.5
+# BAAI/bge-m3
 
-app = modal.App("embedding-en")
-src = "/root/models/bge_base_en"
+app = modal.App("embedding")
+src = "/root/models/bge_m3"
 
 toolset.init_logger()
 
@@ -29,11 +30,12 @@ toolset.init_logger()
 @app.cls(
     image=image,
     secrets=secrets,
-    memory=4096,
+    gpu="A10G",
+    memory=16384,
     max_containers=5,
     scaledown_window=300
 )
-class EmbeddingEN(object):
+class Embedding(object):
 
     embedder: typing.Optional[SentenceTransformer] = None
 
@@ -48,7 +50,7 @@ class EmbeddingEN(object):
         return {
             "status"  : "ok",
             "service" : "tensor",
-            "model"   : "bge-base-en-v1.5"
+            "model"   : "BAAI/bge-m3"
         }
 
     @modal.method()
@@ -102,7 +104,7 @@ class EmbeddingEN(object):
                 "page_vectors" : page_vectors.tolist(),
                 "count"        : count,
                 "dim"          : dim,
-                "model"        : "bge-base-en-v1.5"
+                "model"        : "BAAI/bge-m3"
             }
 
         except Exception as e:
