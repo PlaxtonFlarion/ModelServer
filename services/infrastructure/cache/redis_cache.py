@@ -27,15 +27,13 @@ class RedisCache(object):
     """
 
     def __init__(self, host: str, password: str) -> None:
-        self.pool = redis.ConnectionPool(
+        self.client = redis.Redis(
             host=host,
             port=14381,
-            username="default",
-            password=password,
             decode_responses=True,
-            max_connections=50,
+            username="default",
+            password=password
         )
-        self.client = redis.Redis(connection_pool=self.pool)
 
     async def get(self, key: str) -> typing.Optional[typing.Union[dict, list, str, int, float]]:
         """获取字符串类型的值。"""
@@ -43,7 +41,9 @@ class RedisCache(object):
             return None
         try:
             return json.loads(val)
-        except (json.JSONDecodeError, TypeError):
+        except (json.JSONDecodeError, TypeError) as e:
+            from loguru import logger
+            logger.error(e)
             return val
 
     async def set(self, key: str, value: str, *, ttl: typing.Optional[int] = None) -> typing.Optional[bool]:

@@ -75,7 +75,7 @@ V_MIX = {
       "/rerank": {
         "burst": 2,
         "rate": 0.2
-      },
+      }
     },
     "ip": {}
   }

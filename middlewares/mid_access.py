@@ -59,7 +59,7 @@ async def access_middleware(
 
     # ---- 慢请求警告 ----
     if cost_ms > 300:
-        logger.warning(
+        logger.info(
             f"[{trace_id}] Slow request: {cost_ms}ms {method} {path}"
         )
 
