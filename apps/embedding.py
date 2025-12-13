@@ -117,7 +117,7 @@ class Embedding(object):
                 )
                 for i, x in enumerate(scored, start=1):
                     logger.info(
-                        f"   └ Top-{i}: score={x['score']:.4f} | text={x['text'][:10]}"
+                        f"   └ Top-{i}: score={x['score']:.4f} | {x['text'][:10]}"
                     )
 
             # ===== 5) 统计 =====
