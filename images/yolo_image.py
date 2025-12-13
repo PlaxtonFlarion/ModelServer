@@ -11,6 +11,8 @@ from utils import const
 
 image = modal.Image.debian_slim(
     "3.11"
+).apt_install(
+    "libgl1", "libglib2.0-0", "ffmpeg"
 ).pip_install(
     const.YOLO_DEPENDENCIES
 ).add_local_dir(
