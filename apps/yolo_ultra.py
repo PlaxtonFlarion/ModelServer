@@ -53,28 +53,28 @@ class YoloUltra(object):
 
     @modal.method()
     async def detection(self, image_bytes: bytes) -> dict:
-        logger.info("🟡 [YOLO BEGIN] Detection start")
+        logger.info("🟡 [BEGIN] Detection start")
         logger.info(
-            f"🟡 [YOLO - 1] Image bytes size = {len(image_bytes)}"
+            f"🟢 [YOLO - 1/5] Image bytes size = {len(image_bytes)}"
         )
 
         # ===== Step 1: bytes -> PIL =====
         image_pil = Image.open(io.BytesIO(image_bytes)).convert("RGB")
         logger.info(
-            f"🟢 [YOLO - 2] Image decoded (PIL) size={image_pil.size}"
+            f"🟢 [YOLO - 2/5] Image decoded (PIL) size={image_pil.size}"
         )
 
         # ===== Step 2: PIL -> numpy =====
         image_arr = numpy.array(image_pil)
         logger.info(
-            f"🟢 [YOLO - 3] Image converted to numpy shape={image_arr.shape} dtype={image_arr.dtype}"
+            f"🟢 [YOLO - 3/5] Image converted to numpy shape={image_arr.shape} dtype={image_arr.dtype}"
         )
 
         # ===== Step 3: YOLO inference =====
         values = self.yolo_model(image_arr, verbose=False)
         result = values[0]
         logger.info(
-            f"🟢 [YOLO - 4] YOLO inference done"
+            f"🟢 [YOLO - 4/5] YOLO inference done"
         )
 
         # ===== Step 4: Parse results =====
@@ -94,11 +94,9 @@ class YoloUltra(object):
             })
 
         logger.info(
-            f"🟢 [YOLO - 5] Result parsed objects={len(objects)}"
+            f"🟢 [YOLO - 5/5] Result parsed objects={len(objects)}"
         )
-        logger.info(
-            f"✅ [YOLO - FINAL] Detection finished"
-        )
+        logger.info(f"✅ [FINAL] Detection finished")
 
         return {
             "objects" : objects,

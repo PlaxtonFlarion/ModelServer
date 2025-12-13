@@ -17,6 +17,8 @@ image = modal.Image.debian_slim(
     "libgl1", "libglib2.0-0", "ffmpeg"
 ).pip_install(
     const.YOLO_DEPENDENCIES
+).env(
+    {"YOLO_CONFIG_DIR": "/tmp/Ultralytics"}
 ).add_local_dir(
     ".", "/root", ignore=const.IGNORE
 ).add_local_dir(
