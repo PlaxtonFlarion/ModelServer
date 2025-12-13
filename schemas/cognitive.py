@@ -26,6 +26,44 @@ class FrameMeta(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class ScoreItem(BaseModel):
+    score: float = Field(
+        ...,
+        description="query 与 element 的余弦相似度，已归一化，范围 [0,1]"
+    )
+    text: str = Field(
+        ...,
+        description="对应的元素文本（element 描述）"
+    )
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TensorRequest(BaseModel):
+    query: typing.Optional[str] = Field(
+        None,
+        description="用于相似度计算的查询文本"
+    )
+
+    elements: typing.Optional[list[str]] = Field(
+        None,
+        description="候选文本列表，用于向量化或相似度计算",
+        examples=[["立即支付", "确认付款", "取消订单"]]
+    )
+
+    s: bool = Field(
+        False,
+        description="是否返回 query 与 elements 的相似度 scores（Top-K）"
+    )
+
+    k: int = Field(
+        5,
+        ge=1,
+        le=50,
+        description="返回的 K 相似结果数量，仅在 s=true 时生效"
+    )
+
+
 class TensorResponse(BaseModel):
     query: typing.Optional[str] = Field(None, description="原始输入文本")
     query_vec: typing.Optional[list[float]] = Field(
@@ -42,6 +80,15 @@ class TensorResponse(BaseModel):
         None,
         description="elements 批量向量结果 (二维数组)",
         examples=[[0.298, -0.111, 0.552]]
+    )
+
+    scores: typing.Optional[list[ScoreItem]] = Field(
+        None,
+        description=(
+            "query 与 elements 的相似度结果列表，"
+            "按 score 从高到低排序，结构与 Milvus search 返回一致。"
+            "仅在 return_scores=true 时返回"
+        )
     )
 
     count: int = Field(..., description="向量数量", examples=[2])

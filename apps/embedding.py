@@ -54,7 +54,15 @@ class Embedding(object):
         }
 
     @modal.method()
-    async def tensor(self, query: str, elements: list[str], mesh: list[str]) -> dict:
+    async def tensor(
+        self,
+        query: str,
+        elements: list[str],
+        mesh: list[str],
+        s: bool = False,
+        k: typing.Optional[int] = 5
+    ) -> dict:
+
         start_ts = time.time()
 
         logger.info(f"🟡 [BEGIN] Embedding tensor start")
@@ -86,6 +94,19 @@ class Embedding(object):
             query_vec    = embeds[0] if query else numpy.array([], dtype="float32")
             page_vectors = embeds[1:] if elements else numpy.array([], dtype="float32")
 
+            scored: typing.Optional[list[dict[str, str | float]]] = None
+            if s:
+                scores = (page_vectors @ query_vec).tolist()
+                scored = [
+                    {
+                        "score" : float(scores[i]),
+                        "text"  : elements[i]
+                    }
+                    for i in range(len(elements))
+                ]
+                scored.sort(key=lambda x: x["score"], reverse=True)
+                scored = scored[:k or 5]
+
             # ===== 5) 统计 =====
             count = len(mesh)
             dim    = embeds.shape[-1] if count else 0
@@ -102,6 +123,7 @@ class Embedding(object):
                 "query_vec"    : query_vec.tolist(),
                 "elements"     : elements,
                 "page_vectors" : page_vectors.tolist(),
+                "scores"       : scored,
                 "count"        : count,
                 "dim"          : dim,
                 "model"        : "BAAI/bge-m3"

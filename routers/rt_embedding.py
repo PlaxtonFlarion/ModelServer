@@ -11,7 +11,9 @@ from loguru import logger
 from fastapi import (
     APIRouter, Request
 )
-from schemas.cognitive import TensorResponse
+from schemas.cognitive import (
+    TensorRequest, TensorResponse
+)
 from schemas.errors import BizError
 from utils import const
 
@@ -23,22 +25,26 @@ embedding_router = APIRouter(tags=["Embedding"])
     response_model=TensorResponse,
     operation_id="api_tensor"
 )
-async def api_tensor_en(request: Request) -> TensorResponse:
+async def api_tensor_en(
+    request: Request,
+    payload: TensorRequest
+) -> TensorResponse:
     logger.info(f"**> {request.method} {request.url}")
 
     f = modal.Cls.from_name(app_name=const.GROUP_FUNC, name="Embedding")
 
     try:
-        body     = await request.json()
-        query    = body.get("query")
-        elements = body.get("elements")
+        query    = payload.query
+        elements = payload.elements
+        s        = payload.s
+        k        = payload.k
         mesh     = ([query] if query else []) + (elements or [])
 
         if not mesh: raise BizError(
             status_code=400, detail="query and elements required"
         )
 
-        resp = await f().tensor.remote.aio(query, elements, mesh)
+        resp = await f().tensor.remote.aio(query, elements, mesh, s, k)
         return TensorResponse(**resp)
 
     finally:
