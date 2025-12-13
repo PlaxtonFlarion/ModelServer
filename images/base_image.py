@@ -9,9 +9,10 @@
 import modal
 from utils import const
 
-
 image = modal.Image.debian_slim(
     "3.11"
+).run_commands(
+    const.COMMANDS
 ).pip_install(
     const.BASE_DEPENDENCIES
 ).add_local_dir(

@@ -11,6 +11,8 @@ from utils import const
 
 image = modal.Image.debian_slim(
     "3.11"
+).run_commands(
+    const.COMMANDS
 ).pip_install(
     const.INFERENCE_DEPENDENCIES
 ).apt_install(

@@ -98,7 +98,12 @@ IGNORE = [
     ".DS_Store"
 ]
 
-# ==== Notes: 依赖 ====
+# ==== Notes: 升级 pip ====
+COMMANDS = [
+    "python -m pip install --upgrade pip"
+]
+
+# ==== Notes: web app 依赖 ====
 BASE_DEPENDENCIES = [
     "modal==1.2.4",
     "synchronicity==0.10.5",
